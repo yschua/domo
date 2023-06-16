@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "domo", "domo.csproj", "{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0EF9BD0B-B91A-426E-8E94-DC37776BF4D4}
+	EndGlobalSection
+EndGlobal
