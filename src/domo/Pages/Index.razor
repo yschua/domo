@@ -7,3 +7,58 @@
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@functions
+{
+    enum ScheduleMode
+    {
+        Full,
+        FirstHalf,
+        LastHalf
+    }
+}
+
+@{
+    void RenderSchedule(ScheduleMode mode)
+    {
+        var (startHour, endHour, rowModifier) = mode switch
+        {
+            ScheduleMode.Full => (0, 25, "gantt__row--full-day"),
+            ScheduleMode.FirstHalf => (0, 13, "gantt__row--half-day"),
+            ScheduleMode.LastHalf => (12, 25, "gantt__row--half-day"),
+        };
+
+        var numCol = endHour - startHour;
+
+        <div class="gantt">
+            <div class="gantt__row gantt__row--months gantt__row-first " />
+            <div class="gantt__row gantt__row--months @rowModifier">
+                @foreach (var hour in Enumerable.Range(startHour, numCol))
+                {
+                    <span>@hour</span>
+                }
+            </div>
+
+            <div class="gantt__row--lines @rowModifier">
+                @foreach (var _ in Enumerable.Range(startHour, numCol))
+                {
+                    <span></span>
+                }
+            </div>
+
+            @foreach (var day in new[] { "M", "T", "W", "T", "F", "S", "S" })
+            {
+                <div class="gantt__row-first">@day</div>
+                <ul class="gantt__row gantt__row-bars @rowModifier">
+                    <li style="grid-column: 3/9; background-color: #2ecaac;"></li>
+                </ul>
+            }
+        </div>
+    }
+
+    //RenderSchedule(ScheduleMode.Full);
+    //<br />
+    //RenderSchedule(ScheduleMode.FirstHalf);
+    //<br />
+    //RenderSchedule(ScheduleMode.LastHalf);
+}
