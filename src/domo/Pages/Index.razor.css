@@ -10,8 +10,16 @@
 
 .gantt__row {
     display: grid;
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 40px 1fr;
     background-color: #fff;
+}
+
+.gantt__row--half-day {
+    grid-template-columns: 40px repeat(13, 1fr);
+}
+
+.gantt__row--full-day {
+    grid-template-columns: 40px repeat(25, 1fr);
 }
 
 .gantt__row:nth-child(odd) {
@@ -44,12 +52,12 @@
     height: 100%;
     width: 100%;
     background-color: transparent;
-    grid-template-columns: 150px repeat(12, 1fr);
 }
 
 .gantt__row--lines span {
     display: block;
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(167, 167, 167, 0.2);
+    margin-top: 30px;
 }
 
 .gantt__row--lines span.marker {
@@ -60,7 +68,7 @@
 .gantt__row--lines:after {
     grid-row: 1;
     grid-column: 0;
-    background-color: #1688b3 45;
+    background-color: #1688b3;
     z-index: 2;
     height: 100%;
 }
@@ -69,7 +77,6 @@
     color: #fff;
     background-color: #0a3444 !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    grid-template-columns: 150px repeat(12, 1fr);
 }
 
 .gantt__row--months .gantt__row-first {
@@ -82,7 +89,7 @@
     font-size: 13px;
     align-self: center;
     font-weight: bold;
-    padding: 20px 0;
+    padding: 5px 0;
 }
 
 .gantt__row-first {
@@ -90,18 +97,18 @@
     border-width: 1px 0 0 0;
     border-color: rgba(0, 0, 0, 0.1);
     border-style: solid;
-    padding: 15px 0;
+    padding: 8px 0;
     font-size: 13px;
     font-weight: bold;
     text-align: center;
+    color: #000000;
 }
 
 .gantt__row-bars {
     list-style: none;
     display: grid;
-    padding: 9px 0;
+    padding: 4px 0;
     margin: 0;
-    grid-template-columns: repeat(12, 1fr);
     grid-gap: 8px 0;
     border-top: 1px solid rgba(221, 221, 221, 0.8);
 }
