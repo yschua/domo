@@ -2,8 +2,6 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    background-color: #22272e;
-    color: #cdd9e5;
 }
 
 h1:focus {
@@ -11,7 +9,7 @@ h1:focus {
 }
 
 a, .btn-link {
-    color: #549bf5;
+    color: #0071c1;
 }
 
 .btn-primary {
