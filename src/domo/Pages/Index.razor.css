@@ -1,156 +1,62 @@
-.gantt {
-    display: grid;
-    border: 0;
-    border-radius: 12px;
-    position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
-    box-shadow: 0 75px 125px -57px #7e8f94;
-    grid-template-columns: 25px 1fr;
-}
-
-.gantt__row {
-    display: grid;
-    background-color: #fff;
-}
-
-.gantt__row--half-day {
-    display: grid;
-    grid-template-columns: repeat(13, 1fr);
-    grid-column: 2/-1;
-}
-
-.gantt__row--full-day {
-    display: grid;
-    grid-template-columns: repeat(25, 1fr);
-    grid-column: 2/-1;
-}
-
-.gantt__row:nth-child(4n+3) {
-    background-color: #f5f5f5;
-}
-
-.gantt__row-first:nth-child(4n+2) {
-    background-color: #f5f5f5;
-}
-
-.gantt__row:nth-child(3) .gantt__row-bars {
-    border-top: 0;
-}
-
-.gantt__row:nth-child(3) .gantt__row-first {
-    border-top: 0;
-}
-
-.gantt__row--empty {
-    background-color: #ffd6d2 !important;
-    z-index: 1;
-}
-
-.gantt__row--empty .gantt__row-first {
-    border-width: 1px 1px 0 0;
-}
-
-.gantt__row--lines {
-    position: absolute;
-    height: 100%;
+.schedule {
     width: 100%;
-    background-color: transparent;
 }
 
-.gantt__row--lines span {
-    display: block;
-    border-left: 1px solid rgba(167, 167, 167, 0.2);
+.schedule__row {
+    display: flex;
+    width: 100%;
+    height: 50px;
 }
 
-.gantt__row--lines span.marker {
-    background-color: rgba(10, 52, 68, 0.13);
-    z-index: 2;
+.schedule__row--header {
+    background: #0a3444;
 }
 
-.gantt__row--lines:after {
-    grid-row: 1;
-    grid-column: 0;
-    background-color: #1688b3;
-    z-index: 2;
-    height: 100%;
-}
-
-.gantt__row--months {
-    color: #fff;
-    background-color: #0a3444 !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.gantt__row--months .gantt__row-first {
-    border-top: 0 !important;
-    background-color: #0a3444 !important;
-}
-
-.gantt__row--months span {
-    text-align: center;
-    font-size: 13px;
-    align-self: center;
-    font-weight: bold;
-    padding: 5px 0;
-}
-
-.gantt__row-first {
-    background-color: #fff;
-    border-width: 1px 0 0 0;
-    border-color: rgba(0, 0, 0, 0.1);
-    border-style: solid;
-    padding: 16px 0px;
-    font-size: 13px;
-    font-weight: bold;
-    text-align: center;
-    vertical-align: middle;
-    color: #000000;
-    grid-column: 1;
-}
-
-.gantt__row-bars {
-    list-style: none;
-    display: grid;
-    padding: 6px 0;
-    margin: 0;
-    grid-gap: 8px 0;
-    border-top: 1px solid rgba(221, 221, 221, 0.8);
-    grid-column: 2/-1;
-}
-
-.gantt__row-bars li {
-    font-weight: 500;
-    text-align: left;
-    font-size: 14px;
-    min-height: 15px;
-    background-color: #55de84;
-    padding: 20px 0;
-    color: #fff;
-    overflow: hidden;
+.schedule__row--body {
     position: relative;
-    cursor: pointer;
-    border-radius: 60px;
+    background-color: #ffffff;
 }
 
-.gantt__row-bars li.stripes {
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, .1) 5px, rgba(255, 255, 255, .1) 12px);
+.schedule__cell {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: 0;
+    color: #0a3444;
 }
 
-.gantt__row-bars li:before,
-.gantt__row-bars li:after {
-    content: "";
-    height: 100%;
-    top: 0;
-    z-index: 4;
+.schedule__cell--edge {
+    flex-grow: 0;
+    flex-basis: 30px;
+}
+
+.schedule__row--header .schedule__cell {
+    color: white;
+    border: 0;
+}
+
+.schedule__cell-content {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
-.gantt__row-bars li:before {
     left: 0;
+    transform: translateX(-50%);
 }
 
-.gantt__row-bars li:after {
-    right: 0;
+.schedule__event-container {
+    position: absolute;
+    left: 30px;
+    right: 30px;
+}
+
+.schedule__event {
+    position: absolute;
+    background-color: #2ecaac;
+    border-radius: 60px;
+    z-index: 0;
+    top: 5px;
+    height: 40px;
+    z-index: 1;
 }
