@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using domo.Data
 
 <PageTitle>Index</PageTitle>
 
@@ -69,3 +70,16 @@ Welcome to your new app.
     //<br />
     //RenderSchedule(ScheduleMode.LastHalf);
 }
+
+@code
+{
+    Heater heater = new Heater();
+}
+
+<InputRadioGroup @bind-Value="@heater.Mode">
+    @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
+    {
+        <InputRadio class="btn-check" id=@mode Value="mode" />
+        <label class="btn btn-outline-primary" for="@mode">@mode</label>
+    }
+</InputRadioGroup>
