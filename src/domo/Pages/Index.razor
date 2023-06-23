@@ -1,8 +1,9 @@
 ﻿@page "/"
 @using domo.Data
+@using domo.ViewModel
 @using System.ComponentModel;
 @implements IDisposable
-@inject Heater Heater
+@inject HeaterViewModel HeaterViewModel
 
 <PageTitle>Index</PageTitle>
 
@@ -23,12 +24,12 @@ Welcome to your new app.
 
     protected override void OnInitialized()
     {
-        Heater.PropertyChanged += StateChangedHandler;
+        HeaterViewModel.PropertyChanged += StateChangedHandler;
     }
 
     public void Dispose()
     {
-        Heater.PropertyChanged -= StateChangedHandler;
+        HeaterViewModel.PropertyChanged -= StateChangedHandler;
     }
 
     private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
@@ -89,11 +90,11 @@ Welcome to your new app.
     //RenderSchedule(ScheduleMode.LastHalf);
 }
 
-<FlameAnimation IsOn=@(Heater.Mode != HeaterMode.Off)/>
+<FlameAnimation IsOn=@(HeaterViewModel.Mode != HeaterMode.Off) />
 
 <br />
 
-<InputRadioGroup @bind-Value="@Heater.Mode">
+<InputRadioGroup @bind-Value="@HeaterViewModel.Mode">
     @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
     {
         <InputRadio class="btn-check" id=@mode Value="mode" />

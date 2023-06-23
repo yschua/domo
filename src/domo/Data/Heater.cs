@@ -9,8 +9,7 @@ public enum HeaterMode
     Override,
 }
 
-public partial class Heater : ObservableObject
+public class Heater
 {
-    [ObservableProperty]
-    private HeaterMode _mode;
+    public HeaterMode Mode { get; set; }
 }

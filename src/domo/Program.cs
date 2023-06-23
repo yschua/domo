@@ -1,4 +1,5 @@
 using domo.Data;
+using domo.ViewModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<Heater>();
+builder.Services.AddSingleton<HeaterViewModel>();
 
 var app = builder.Build();
 
