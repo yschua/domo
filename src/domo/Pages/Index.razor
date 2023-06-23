@@ -1,7 +1,8 @@
 ﻿@page "/"
 @using domo.Data
-@inject Heater Heater
+@using System.ComponentModel;
 @implements IDisposable
+@inject Heater Heater
 
 <PageTitle>Index</PageTitle>
 
@@ -22,15 +23,18 @@ Welcome to your new app.
 
     protected override void OnInitialized()
     {
-        Heater.Changed += StateChangedHandler;
+        Heater.PropertyChanged += StateChangedHandler;
     }
 
     public void Dispose()
     {
-        Heater.Changed -= StateChangedHandler;
+        Heater.PropertyChanged -= StateChangedHandler;
     }
 
-    private void StateChangedHandler() => InvokeAsync(StateHasChanged);
+    private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
 }
 
 @{

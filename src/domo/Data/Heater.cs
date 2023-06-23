@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace domo.Data;
 
 public enum HeaterMode
@@ -7,21 +9,8 @@ public enum HeaterMode
     Override,
 }
 
-public class Heater
+public partial class Heater : ObservableObject
 {
+    [ObservableProperty]
     private HeaterMode _mode;
-    public HeaterMode Mode 
-    {
-        get => _mode;
-        set 
-        {
-            if (_mode != value)
-            {
-                _mode = value;
-                Changed?.Invoke();
-            }
-        }
-    }
-
-    public event Action? Changed;
 }
