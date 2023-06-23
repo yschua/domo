@@ -9,5 +9,19 @@ public enum HeaterMode
 
 public class Heater
 {
-    public HeaterMode Mode { get; set; }
+    private HeaterMode _mode;
+    public HeaterMode Mode 
+    {
+        get => _mode;
+        set 
+        {
+            if (_mode != value)
+            {
+                _mode = value;
+                Changed?.Invoke();
+            }
+        }
+    }
+
+    public event Action? Changed;
 }

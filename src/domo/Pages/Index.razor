@@ -1,5 +1,7 @@
 ﻿@page "/"
 @using domo.Data
+@inject Heater Heater
+@implements IDisposable
 
 <PageTitle>Index</PageTitle>
 
@@ -9,7 +11,7 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@functions
+@code
 {
     enum ScheduleMode
     {
@@ -17,6 +19,18 @@ Welcome to your new app.
         FirstHalf,
         LastHalf
     }
+
+    protected override void OnInitialized()
+    {
+        Heater.Changed += StateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        Heater.Changed -= StateChangedHandler;
+    }
+
+    private void StateChangedHandler() => InvokeAsync(StateHasChanged);
 }
 
 @{
@@ -71,12 +85,7 @@ Welcome to your new app.
     //RenderSchedule(ScheduleMode.LastHalf);
 }
 
-@code
-{
-    Heater heater = new Heater();
-}
-
-<InputRadioGroup @bind-Value="@heater.Mode">
+<InputRadioGroup @bind-Value="@Heater.Mode">
     @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
     {
         <InputRadio class="btn-check" id=@mode Value="mode" />
