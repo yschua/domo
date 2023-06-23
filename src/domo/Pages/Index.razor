@@ -89,6 +89,10 @@ Welcome to your new app.
     //RenderSchedule(ScheduleMode.LastHalf);
 }
 
+<FlameAnimation />
+
+<br />
+
 <InputRadioGroup @bind-Value="@Heater.Mode">
     @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
     {

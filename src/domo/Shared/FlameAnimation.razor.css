@@ -1,0 +1,33 @@
+svg {
+    width: 200px;
+}
+
+circle {
+    fill: #fff;
+    animation: flame 2s ease-out infinite;
+    transform: scale(1.8, 2.2) translateX(-21.5%) translateY(-19%);
+}
+
+#ci2 {
+    animation-delay: -.5s;
+}
+
+#ci3 {
+    animation-delay: -1s;
+}
+
+#ci4 {
+    animation-delay: -1.5s;
+}
+
+@keyframes flame {
+    from {
+        r: 1px;
+        opacity: .8;
+    }
+
+    to {
+        r: 28px;
+        opacity: 0;
+    }
+}
