@@ -5,7 +5,7 @@ svg {
 circle {
     fill: #fff;
     animation: flame 2s ease-out infinite;
-    transform: scale(1.8, 2.2) translateX(-21.5%) translateY(-19%);
+    transform: scale(1.8, 2.2) translateX(-20.5px) translateY(-19px);
 }
 
 #ci2 {
