@@ -1,5 +1,6 @@
 svg {
-    width: 180px;
+    width: 100px;
+    /*outline: 1px blue solid;*/
 }
 
 circle {
