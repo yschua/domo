@@ -1,0 +1,30 @@
+﻿@code {
+    [Parameter]
+    public string Label { get; init; }
+
+    [Parameter]
+    public HeaterLevelSetting Setting { get; init; }
+
+    public bool ChangeIsIncrease { get; set; }
+
+    string ChangeTimeFormat => @$"{(ChangeIsIncrease ? "+" : "−")} m \min";
+}
+
+<MudCard>
+    <MudCardContent>
+        <MudText Typo="Typo.h6">@Label</MudText>
+
+        <MudTimePicker TimeEditMode="TimeEditMode.OnlyMinutes" ClosingDelay="500" TimeFormat="m \min"
+                        Label="Initial Duration" @bind-Time="Setting.InitialDuration" />
+
+        <MudTimePicker TimeEditMode="TimeEditMode.OnlyMinutes" ClosingDelay="500" TimeFormat="m \min"
+                        Label="Final Duration" @bind-Time="Setting.FinalDuration" />
+
+        @*<MudToggleIconButton @bind-Toggled="@ChangeIsIncrease"
+                                Icon="@Icons.Material.Filled.ArrowDownward" Color="@Color.Info" Title="Off"
+                                ToggledIcon="@Icons.Material.Filled.ArrowUpward" ToggledColor="@Color.Error" ToggledTitle="On" />*@
+
+        <MudTimePicker TimeEditMode="TimeEditMode.OnlyMinutes" ClosingDelay="500" TimeFormat="@ChangeTimeFormat"
+                        Label="Duration Change" @bind-Time="Setting.DurationChange" />
+    </MudCardContent>
+</MudCard>

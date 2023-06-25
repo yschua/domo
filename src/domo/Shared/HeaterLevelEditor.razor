@@ -1,0 +1,29 @@
+﻿@code {
+    public HeaterLevel SelectedLevel { get; set; } = HeaterLevel.Low;
+
+    public HeaterLevelSetting CurrentSetting { get; set; }
+    = new HeaterLevelSetting
+    {
+        InitialDuration = TimeSpan.Zero,
+        FinalDuration = TimeSpan.Zero,
+        DurationChange = TimeSpan.Zero,
+    };
+}
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5">Level Settings</MudText>
+    </MudItem>
+    <MudItem xs="12">
+        <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level" @bind-Value="SelectedLevel">
+            <MudSelectItem Value="HeaterLevel.Low" />
+            <MudSelectItem Value="HeaterLevel.High" />
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="6">
+        <HeaterLevelDurationEditor Label="On Cycle" Setting="CurrentSetting" />
+    </MudItem>
+    <MudItem xs="6">
+        <HeaterLevelDurationEditor Label="Off Cycle" Setting="CurrentSetting" />
+    </MudItem>
+</MudGrid>
