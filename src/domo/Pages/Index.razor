@@ -28,49 +28,49 @@
 }
 
 @{
-    void RenderSchedule(ScheduleMode mode)
-    {
-        var (startHour, endHour) = mode switch
-        {
-            ScheduleMode.Full => (0, 24),
-            ScheduleMode.FirstHalf => (0, 12),
-            ScheduleMode.LastHalf => (12, 24),
-        };
+    //void RenderSchedule(ScheduleMode mode)
+    //{
+    //    var (startHour, endHour) = mode switch
+    //    {
+    //        ScheduleMode.Full => (0, 24),
+    //        ScheduleMode.FirstHalf => (0, 12),
+    //        ScheduleMode.LastHalf => (12, 24),
+    //    };
 
-        var duration = endHour - startHour;
-        var numCol = endHour - startHour + 2;
+    //    var duration = endHour - startHour;
+    //    var numCol = endHour - startHour + 2;
 
-        <div class="schedule">
-            <div class="schedule__row schedule__row--header">
-                <div class="schedule__cell" />
-                @foreach (var hour in Enumerable.Range(startHour, numCol - 1))
-                {
-                    <div class="schedule__cell">
-                        <div class="schedule__cell-content">
-                            @hour
-                        </div>
-                    </div>
-                }
-            </div>
+    //    <div class="schedule">
+    //        <div class="schedule__row schedule__row--header">
+    //            <div class="schedule__cell" />
+    //            @foreach (var hour in Enumerable.Range(startHour, numCol - 1))
+    //            {
+    //                <div class="schedule__cell">
+    //                    <div class="schedule__cell-content">
+    //                        @hour
+    //                    </div>
+    //                </div>
+    //            }
+    //        </div>
 
-            @foreach (var day in new[] { "M", "T", "W", "T", "F", "S", "S" })
-            {
-                <div class="schedule__row schedule__row--body">
-                    <div class="schedule__event-container">
-                        <div class="schedule__event" style="left: calc(100%/@duration * 3); right: calc(100%/@duration * 2);" />
-                    </div>
-                    <div class="schedule__cell schedule__cell--edge">
-                        @day
-                    </div>
-                    @foreach (var hour in Enumerable.Range(startHour, numCol - 2))
-                    {
-                        <div class="schedule__cell" />
-                    }
-                    <div class="schedule__cell schedule__cell--edge" />
-                </div>
-            }
-        </div>
-    }
+    //        @foreach (var day in new[] { "M", "T", "W", "T", "F", "S", "S" })
+    //        {
+    //            <div class="schedule__row schedule__row--body">
+    //                <div class="schedule__event-container">
+    //                    <div class="schedule__event" style="left: calc(100%/@duration * 3); right: calc(100%/@duration * 2);" />
+    //                </div>
+    //                <div class="schedule__cell schedule__cell--edge">
+    //                    @day
+    //                </div>
+    //                @foreach (var hour in Enumerable.Range(startHour, numCol - 2))
+    //                {
+    //                    <div class="schedule__cell" />
+    //                }
+    //                <div class="schedule__cell schedule__cell--edge" />
+    //            </div>
+    //        }
+    //    </div>
+    //}
 
     //RenderSchedule(ScheduleMode.Full);
     //<br />
@@ -81,30 +81,24 @@
 
 <PageTitle>Index</PageTitle>
 
-<MudMainContent>
-    <MudContainer MaxWidth="MaxWidth.Medium">
-        <MudGrid>
+<MudGrid>
+    <MudItem xs="12">
+        <MudText Typo="Typo.h2">Hello, world!</MudText>
 
-            <MudItem xs="12">
-                <h1>Hello, world!</h1>
+        Welcome to your new app.
 
-                Welcome to your new app.
+        <SurveyPrompt Title="How is Blazor working for you?" />
 
-                <SurveyPrompt Title="How is Blazor working for you?" />
+        <FlameAnimation IsOn=@(HeaterViewModel.Mode != HeaterMode.Off) />
 
-                <FlameAnimation IsOn=@(HeaterViewModel.Mode != HeaterMode.Off) />
+        <InputRadioGroup @bind-Value="@HeaterViewModel.Mode">
+            @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
+            {
+                <InputRadio class="btn-check" id=@mode Value="mode" />
+                <label class="btn btn-outline-primary" for="@mode">@mode</label>
+            }
+        </InputRadioGroup>
+    </MudItem>
 
-                <InputRadioGroup @bind-Value="@HeaterViewModel.Mode">
-                    @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
-                    {
-                        <InputRadio class="btn-check" id=@mode Value="mode" />
-                        <label class="btn btn-outline-primary" for="@mode">@mode</label>
-                    }
-                </InputRadioGroup>
-            </MudItem>
-
-            <HeaterLevelEditor />
-
-        </MudGrid>
-    </MudContainer>
-</MudMainContent>
+    <HeaterLevelEditor />
+</MudGrid>
