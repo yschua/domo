@@ -3,16 +3,7 @@
 @implements IDisposable
 @inject HeaterViewModel HeaterViewModel
 
-<PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-@code
-{
+@code {
     enum ScheduleMode
     {
         Full,
@@ -88,14 +79,26 @@ Welcome to your new app.
     //RenderSchedule(ScheduleMode.LastHalf);
 }
 
-<FlameAnimation IsOn=@(HeaterViewModel.Mode != HeaterMode.Off) />
+<MudMainContent>
+    <MudContainer MaxWidth="MaxWidth.Medium">
 
-<br />
+        <PageTitle>Index</PageTitle>
 
-<InputRadioGroup @bind-Value="@HeaterViewModel.Mode">
-    @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
-    {
-        <InputRadio class="btn-check" id=@mode Value="mode" />
-        <label class="btn btn-outline-primary" for="@mode">@mode</label>
-    }
-</InputRadioGroup>
+        <h1>Hello, world!</h1>
+
+        Welcome to your new app.
+
+        <SurveyPrompt Title="How is Blazor working for you?" />
+
+        <FlameAnimation IsOn=@(HeaterViewModel.Mode != HeaterMode.Off) />
+
+        <InputRadioGroup @bind-Value="@HeaterViewModel.Mode">
+            @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
+            {
+                <InputRadio class="btn-check" id=@mode Value="mode" />
+                <label class="btn btn-outline-primary" for="@mode">@mode</label>
+            }
+        </InputRadioGroup>
+
+    </MudContainer>
+</MudMainContent>
