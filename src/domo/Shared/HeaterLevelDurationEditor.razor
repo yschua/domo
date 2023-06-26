@@ -5,7 +5,7 @@
     [Parameter]
     public HeaterDurationSetting Setting { get; init; }
 
-    public bool ChangeIsIncrease { get; set; }
+    bool ChangeIsIncrease { get; set; }
 
     string ChangeTimeFormat => @$"{(ChangeIsIncrease ? "+" : "−")} m \min";
 }

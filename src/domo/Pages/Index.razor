@@ -14,9 +14,17 @@
         Heater.PropertyChanged -= StateChangedHandler;
     }
 
-    private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
+    void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         InvokeAsync(StateHasChanged);
+    }
+
+    IList<HeaterMode> HeaterModes = new[] { HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off };
+
+    int SelectedHeaterModeIndex
+    {
+        get => HeaterModes.IndexOf(Heater.Mode);
+        set => Heater.Mode = HeaterModes[value];
     }
 }
 
@@ -24,16 +32,23 @@
 
 <MudGrid>
     <MudItem xs="12">
-        <FlameAnimation IsOn=@(Heater.Mode != HeaterMode.Off) />
-
-        <InputRadioGroup @bind-Value="@Heater.Mode">
-            @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
-            {
-                <InputRadio class="btn-check" id=@mode Value="mode" />
-                <label class="btn btn-outline-primary" for="@mode">@mode</label>
-            }
-        </InputRadioGroup>
     </MudItem>
 
-    <HeaterLevelEditor />
+    <MudItem xs="12">
+        <FlameAnimation IsOn=@(Heater.Mode != HeaterMode.Off) />
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudTabs Outlined="true" Centered="true" MinimumTabWidth="130px" Rounded="true"
+                 @bind-ActivePanelIndex="SelectedHeaterModeIndex">
+            @foreach (var mode in HeaterModes)
+            {
+                <MudTabPanel Text="@(mode.ToString())" />
+            }
+        </MudTabs>
+    </MudItem>
+
+    <MudItem xs="12">
+        <HeaterLevelEditor />
+    </MudItem>
 </MudGrid>

@@ -13,7 +13,7 @@
         Heater.PropertyChanged -= StateChangedHandler;
     }
 
-    private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
+    void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Heater.LowLevelSetting) || 
             e.PropertyName == nameof(Heater.HighLevelSetting))
@@ -22,9 +22,9 @@
         }
     }
 
-    public HeaterLevel SelectedLevel { get; set; }
+    HeaterLevel SelectedLevel { get; set; }
 
-    public HeaterLevelSetting SelectedHeaterLevelSetting => SelectedLevel switch
+    HeaterLevelSetting SelectedHeaterLevelSetting => SelectedLevel switch
     {
         HeaterLevel.Low => Heater.LowLevelSetting,
         HeaterLevel.High => Heater.HighLevelSetting
