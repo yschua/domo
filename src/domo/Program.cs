@@ -1,5 +1,4 @@
 using domo.Data;
-using domo.ViewModel;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +9,6 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<Heater>();
-builder.Services.AddSingleton<HeaterViewModel>();
-builder.Services.AddScoped<HeaterLevelEditorViewModel>();
 
 var app = builder.Build();
 

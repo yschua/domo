@@ -1,25 +1,21 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace domo.Data;
 
-public record HeaterLevelSetting(
-    HeaterDurationSetting OnCycleDuration,
-    HeaterDurationSetting OffCycleDuration
-);
-
-public class HeaterDurationSetting
+public partial class HeaterLevelSetting : ObservableObject
 {
-    [SetsRequiredMembers]
-    public HeaterDurationSetting(int initial, int final, int change)
+    public HeaterLevelSetting(HeaterDurationSetting onCycleDuration, HeaterDurationSetting offCycleDuration)
     {
-        InitialDuration = TimeSpan.FromMinutes(initial);
-        FinalDuration = TimeSpan.FromMinutes(final);
-        DurationChange = TimeSpan.FromMinutes(change);
+        OnCycleDuration = onCycleDuration;
+        OffCycleDuration = offCycleDuration;
+
+        OnCycleDuration.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OnCycleDuration));
+        OffCycleDuration.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OffCycleDuration));
     }
 
-    public required TimeSpan? InitialDuration { get; set; }
+    [ObservableProperty]
+    private HeaterDurationSetting _onCycleDuration;
 
-    public required TimeSpan? FinalDuration { get; set; }
-
-    public required TimeSpan? DurationChange { get; set; }
+    [ObservableProperty]
+    private HeaterDurationSetting _offCycleDuration;
 }

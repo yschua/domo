@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using System.ComponentModel;
 @implements IDisposable
-@inject HeaterViewModel HeaterViewModel
+@inject Heater Heater
 
 @code {
     enum ScheduleMode
@@ -13,12 +13,12 @@
 
     protected override void OnInitialized()
     {
-        HeaterViewModel.PropertyChanged += StateChangedHandler;
+        Heater.PropertyChanged += StateChangedHandler;
     }
 
     public void Dispose()
     {
-        HeaterViewModel.PropertyChanged -= StateChangedHandler;
+        Heater.PropertyChanged -= StateChangedHandler;
     }
 
     private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
@@ -89,9 +89,9 @@
 
         <SurveyPrompt Title="How is Blazor working for you?" />
 
-        <FlameAnimation IsOn=@(HeaterViewModel.Mode != HeaterMode.Off) />
+        <FlameAnimation IsOn=@(Heater.Mode != HeaterMode.Off) />
 
-        <InputRadioGroup @bind-Value="@HeaterViewModel.Mode">
+        <InputRadioGroup @bind-Value="@Heater.Mode">
             @foreach (var mode in new[]{ HeaterMode.Schedule, HeaterMode.Override, HeaterMode.Off })
             {
                 <InputRadio class="btn-check" id=@mode Value="mode" />

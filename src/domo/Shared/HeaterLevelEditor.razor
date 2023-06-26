@@ -1,21 +1,34 @@
 ﻿@using System.ComponentModel;
-@inject HeaterLevelEditorViewModel HeaterLevelEditorViewModel
+@implements IDisposable
+@inject Heater Heater
 
 @code {
     protected override void OnInitialized()
     {
-        HeaterLevelEditorViewModel.PropertyChanged += StateChangedHandler;
+        Heater.PropertyChanged += StateChangedHandler;
     }
 
     public void Dispose()
     {
-        HeaterLevelEditorViewModel.PropertyChanged -= StateChangedHandler;
+        Heater.PropertyChanged -= StateChangedHandler;
     }
 
     private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
-        InvokeAsync(StateHasChanged);
+        if (e.PropertyName == nameof(Heater.LowLevelSetting) || 
+            e.PropertyName == nameof(Heater.HighLevelSetting))
+        {
+            InvokeAsync(StateHasChanged);
+        }
     }
+
+    public HeaterLevel SelectedLevel { get; set; }
+
+    public HeaterLevelSetting SelectedHeaterLevelSetting => SelectedLevel switch
+    {
+        HeaterLevel.Low => Heater.LowLevelSetting,
+        HeaterLevel.High => Heater.HighLevelSetting
+    };
 }
 
 <MudGrid>
@@ -23,16 +36,15 @@
         <MudText Typo="Typo.h5">Level Settings</MudText>
     </MudItem>
     <MudItem xs="12">
-        <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level"
-                   @bind-Value="HeaterLevelEditorViewModel.SelectedLevel">
+        <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level" @bind-Value="SelectedLevel">
             <MudSelectItem Value="HeaterLevel.Low" />
             <MudSelectItem Value="HeaterLevel.High" />
         </MudSelect>
     </MudItem>
     <MudItem xs="6">
-        <HeaterLevelDurationEditor Label="On Cycle" Setting="HeaterLevelEditorViewModel.OnCycleDuration" />
+        <HeaterLevelDurationEditor Label="On Cycle" Setting="SelectedHeaterLevelSetting.OnCycleDuration" />
     </MudItem>
     <MudItem xs="6">
-        <HeaterLevelDurationEditor Label="Off Cycle" Setting="HeaterLevelEditorViewModel.OffCycleDuration" />
+        <HeaterLevelDurationEditor Label="Off Cycle" Setting="SelectedHeaterLevelSetting.OffCycleDuration" />
     </MudItem>
 </MudGrid>

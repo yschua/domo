@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace domo.Data;
 
 public enum HeaterMode
@@ -14,26 +16,26 @@ public enum HeaterLevel
     Auto,
 }
 
-public class Heater
+public partial class Heater : ObservableObject
 {
     public Heater()
     {
-        LowLevelSetting = new HeaterLevelSetting(
-            new HeaterDurationSetting(10, 10, 0),
-            new HeaterDurationSetting(30, 10, 10)
-        );
+        LowLevelSetting = new(new(10, 10, 0), new(30, 10, 10));
+        HighLevelSetting = new(new(20, 10, 0), new(40, 10, 10));
 
-        HighLevelSetting = new HeaterLevelSetting(
-            new HeaterDurationSetting(10, 10, 0),
-            new HeaterDurationSetting(30, 10, 10)
-        );
+        LowLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LowLevelSetting));
+        HighLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HighLevelSetting));
     }
 
-    public HeaterMode Mode { get; set; }
+    [ObservableProperty]
+    private HeaterMode _mode;
 
-    public HeaterLevel Level { get; set; }
+    [ObservableProperty]
+    private HeaterLevel _level;
 
-    public HeaterLevelSetting LowLevelSetting { get; init; }
-    
-    public HeaterLevelSetting HighLevelSetting { get; init; }
+    [ObservableProperty]
+    private HeaterLevelSetting _lowLevelSetting;
+
+    [ObservableProperty]
+    private HeaterLevelSetting _highLevelSetting;
 }
