@@ -11,6 +11,7 @@ builder.Services.AddMudServices();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<Heater>();
 builder.Services.AddSingleton<HeaterViewModel>();
+builder.Services.AddScoped<HeaterLevelEditorViewModel>();
 
 var app = builder.Build();
 

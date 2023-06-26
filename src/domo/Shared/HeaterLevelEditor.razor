@@ -1,13 +1,21 @@
-﻿@code {
-    public HeaterLevel SelectedLevel { get; set; } = HeaterLevel.Low;
+﻿@using System.ComponentModel;
+@inject HeaterLevelEditorViewModel HeaterLevelEditorViewModel
 
-    public HeaterLevelSetting CurrentSetting { get; set; }
-    = new HeaterLevelSetting
+@code {
+    protected override void OnInitialized()
     {
-        InitialDuration = TimeSpan.Zero,
-        FinalDuration = TimeSpan.Zero,
-        DurationChange = TimeSpan.Zero,
-    };
+        HeaterLevelEditorViewModel.PropertyChanged += StateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        HeaterLevelEditorViewModel.PropertyChanged -= StateChangedHandler;
+    }
+
+    private void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
 }
 
 <MudGrid>
@@ -15,15 +23,16 @@
         <MudText Typo="Typo.h5">Level Settings</MudText>
     </MudItem>
     <MudItem xs="12">
-        <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level" @bind-Value="SelectedLevel">
+        <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level"
+                   @bind-Value="HeaterLevelEditorViewModel.SelectedLevel">
             <MudSelectItem Value="HeaterLevel.Low" />
             <MudSelectItem Value="HeaterLevel.High" />
         </MudSelect>
     </MudItem>
     <MudItem xs="6">
-        <HeaterLevelDurationEditor Label="On Cycle" Setting="CurrentSetting" />
+        <HeaterLevelDurationEditor Label="On Cycle" Setting="HeaterLevelEditorViewModel.OnCycleDuration" />
     </MudItem>
     <MudItem xs="6">
-        <HeaterLevelDurationEditor Label="Off Cycle" Setting="CurrentSetting" />
+        <HeaterLevelDurationEditor Label="Off Cycle" Setting="HeaterLevelEditorViewModel.OffCycleDuration" />
     </MudItem>
 </MudGrid>
