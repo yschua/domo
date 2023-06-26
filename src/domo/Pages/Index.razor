@@ -83,12 +83,6 @@
 
 <MudGrid>
     <MudItem xs="12">
-        <MudText Typo="Typo.h2">Hello, world!</MudText>
-
-        Welcome to your new app.
-
-        <SurveyPrompt Title="How is Blazor working for you?" />
-
         <FlameAnimation IsOn=@(Heater.Mode != HeaterMode.Off) />
 
         <InputRadioGroup @bind-Value="@Heater.Mode">
