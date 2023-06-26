@@ -1,0 +1,60 @@
+﻿@code {
+    enum ScheduleMode
+    {
+        Full,
+        FirstHalf,
+        LastHalf
+    }
+}
+
+@{
+    void RenderSchedule(ScheduleMode mode)
+    {
+        var (startHour, endHour) = mode switch
+        {
+            ScheduleMode.Full => (0, 24),
+            ScheduleMode.FirstHalf => (0, 12),
+            ScheduleMode.LastHalf => (12, 24),
+        };
+
+        var duration = endHour - startHour;
+        var numCol = endHour - startHour + 2;
+
+        <div class="schedule">
+            <div class="schedule__row schedule__row--header">
+                <div class="schedule__cell" />
+                @foreach (var hour in Enumerable.Range(startHour, numCol - 1))
+                {
+                    <div class="schedule__cell">
+                        <div class="schedule__cell-content">
+                            @hour
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @foreach (var day in new[] { "M", "T", "W", "T", "F", "S", "S" })
+            {
+                <div class="schedule__row schedule__row--body">
+                    <div class="schedule__event-container">
+                        <div class="schedule__event" style="left: calc(100%/@duration * 3); right: calc(100%/@duration * 2);" />
+                    </div>
+                    <div class="schedule__cell schedule__cell--edge">
+                        @day
+                    </div>
+                    @foreach (var hour in Enumerable.Range(startHour, numCol - 2))
+                    {
+                        <div class="schedule__cell" />
+                    }
+                    <div class="schedule__cell schedule__cell--edge" />
+                </div>
+            }
+        </div>
+    }
+
+    RenderSchedule(ScheduleMode.Full);
+    <br />
+    RenderSchedule(ScheduleMode.FirstHalf);
+    <br />
+    RenderSchedule(ScheduleMode.LastHalf);
+}
