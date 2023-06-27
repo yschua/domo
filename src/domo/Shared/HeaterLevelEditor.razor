@@ -31,20 +31,27 @@
     };
 }
 
-<MudGrid>
-    <MudItem xs="12">
-        <MudText Typo="Typo.h6">Level Settings</MudText>
-    </MudItem>
-    <MudItem xs="12">
-        <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level" @bind-Value="SelectedLevel">
-            <MudSelectItem Value="HeaterLevel.Low" />
-            <MudSelectItem Value="HeaterLevel.High" />
-        </MudSelect>
-    </MudItem>
-    <MudItem xs="6">
-        <HeaterLevelDurationEditor Label="On Cycle" Setting="SelectedHeaterLevelSetting.OnCycleDuration" />
-    </MudItem>
-    <MudItem xs="6">
-        <HeaterLevelDurationEditor Label="Off Cycle" Setting="SelectedHeaterLevelSetting.OffCycleDuration" />
-    </MudItem>
-</MudGrid>
+<MudCard Outlined="true">
+    <MudCardContent>
+        <MudGrid Spacing="1">
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6">Level Settings</MudText>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level" @bind-Value="SelectedLevel">
+                    <MudSelectItem Value="HeaterLevel.Low" />
+                    <MudSelectItem Value="HeaterLevel.High" />
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="6">
+                <HeaterLevelDurationEditor Label="On Cycle" Setting="SelectedHeaterLevelSetting.OnCycleDuration" />
+            </MudItem>
+
+            <MudItem xs="6">
+                <HeaterLevelDurationEditor Label="Off Cycle" Setting="SelectedHeaterLevelSetting.OffCycleDuration" />
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
