@@ -22,6 +22,7 @@ public partial class Heater : ObservableObject
     {
         LowLevelSetting = new(new(10, 10, 0), new(30, 10, 10));
         HighLevelSetting = new(new(20, 10, 0), new(40, 10, 10));
+        OverrideDuration = TimeSpan.FromMinutes(60);
 
         LowLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LowLevelSetting));
         HighLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HighLevelSetting));
@@ -38,4 +39,10 @@ public partial class Heater : ObservableObject
 
     [ObservableProperty]
     private HeaterLevelSetting _highLevelSetting;
+
+    [ObservableProperty]
+    private TimeSpan? _overrideDuration;
+
+    [ObservableProperty]
+    private HeaterLevel _overrideLevel;
 }

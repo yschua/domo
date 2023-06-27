@@ -1,0 +1,49 @@
+﻿@using System.ComponentModel;
+@inject Heater Heater
+
+@code {
+    protected override void OnInitialized()
+    {
+        Heater.PropertyChanged += StateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        Heater.PropertyChanged -= StateChangedHandler;
+    }
+
+    void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Heater.OverrideDuration) ||
+            e.PropertyName == nameof(Heater.OverrideLevel))
+        {
+            InvokeAsync(StateHasChanged);
+        }
+    }
+}
+
+<MudGrid Spacing="1" Class="align-items-center">
+    <MudItem xs="12">
+        <MudTimePicker AmPm="false" ClosingDelay="500" Label="Override Duration" 
+                       @bind-Time="Heater.OverrideDuration" />
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudText Typo="Typo.caption">Level</MudText>
+    </MudItem>
+
+    @foreach (var level in new[]{ HeaterLevel.Low, HeaterLevel.High })
+    {
+        <MudItem xs="4">
+            <MudButton Color="Color.Primary" FullWidth="true"
+                       Variant="@(level == Heater.OverrideLevel ? MudBlazor.Variant.Filled : MudBlazor.Variant.Outlined)"
+                       OnClick="@(_ => Heater.OverrideLevel = level)">
+                @level.ToString()
+            </MudButton>
+        </MudItem>
+    }
+
+    <MudItem xs="4">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Disabled="true">Auto</MudButton>
+    </MudItem>
+</MudGrid>

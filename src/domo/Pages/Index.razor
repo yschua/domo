@@ -39,12 +39,15 @@
     </MudItem>
 
     <MudItem xs="12">
-        <MudTabs Outlined="true" Centered="true" MinimumTabWidth="130px" Rounded="true"
-                 @bind-ActivePanelIndex="SelectedHeaterModeIndex">
-            @foreach (var mode in HeaterModes)
-            {
-                <MudTabPanel Text="@(mode.ToString())" />
-            }
+        <MudTabs Outlined="true" Centered="true" MinimumTabWidth="130px" Rounded="true" Border="true"
+                 ApplyEffectsToContainer="true" @bind-ActivePanelIndex="SelectedHeaterModeIndex">
+            <MudTabPanel Text="@(HeaterModes[0].ToString())" />
+            <MudTabPanel Text="@(HeaterModes[1].ToString())">
+                <div class="mx-3 mb-3">
+                    <OverrideMenu />
+                </div>
+            </MudTabPanel>
+            <MudTabPanel Text="@(HeaterModes[2].ToString())" />
         </MudTabs>
     </MudItem>
 
