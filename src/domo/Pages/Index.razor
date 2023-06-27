@@ -4,6 +4,7 @@
 @inject Heater Heater
 
 @code {
+    // TODO move property change triggers to a base class
     protected override void OnInitialized()
     {
         Heater.PropertyChanged += StateChangedHandler;
@@ -28,7 +29,7 @@
     }
 }
 
-<PageTitle>Index</PageTitle>
+<PageTitle>domo</PageTitle>
 
 <MudGrid>
     <MudItem xs="12">
