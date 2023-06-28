@@ -1,4 +1,5 @@
 using domo.Data;
+using LiteDB;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
-builder.Services.AddSingleton<Heater>();
+builder.Services.AddSingleton<HeaterDatabaseService>();
+builder.Services.AddSingleton<HeaterFactory>();
+builder.Services.AddSingleton<Heater>(p => p.GetRequiredService<HeaterDatabaseService>().Heater);
+builder.Services.AddSingleton<LiteDatabase>(_ =>
+{
+    var appDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "domo");
+    Directory.CreateDirectory(appDir);
+    return new LiteDatabase(Path.Combine(appDir, "domo.db"));
+});
 
 var app = builder.Build();
 

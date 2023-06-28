@@ -18,15 +18,7 @@ public enum HeaterLevel
 
 public partial class Heater : ObservableObject
 {
-    public Heater()
-    {
-        LowLevelSetting = new(new(10, 10, 0), new(30, 10, 10));
-        HighLevelSetting = new(new(20, 10, 0), new(40, 10, 10));
-        OverrideDuration = TimeSpan.FromMinutes(60);
-
-        LowLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LowLevelSetting));
-        HighLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HighLevelSetting));
-    }
+    public int Id { get; set; }
 
     [ObservableProperty]
     private HeaterMode _mode;
@@ -45,4 +37,18 @@ public partial class Heater : ObservableObject
 
     [ObservableProperty]
     private HeaterLevel _overrideLevel;
+
+    public void SetUpPropertyChangedHandler()
+    {
+        LowLevelSetting.SetUpPropertyChangedHandler();
+        HighLevelSetting.SetUpPropertyChangedHandler();
+
+        LowLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LowLevelSetting));
+        HighLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HighLevelSetting));
+    }
+
+    public void RegisterUpdateHandler(Action handler)
+    {
+        PropertyChanged += (_, _) => handler();
+    }
 }
