@@ -2,13 +2,13 @@
 
 namespace domo.Data;
 
-public partial class HeaterLevelSetting : ObservableObject
+public partial class HeaterSetting : ObservableObject
 {
     [ObservableProperty]
-    private HeaterDurationSetting _onCycleDuration;
+    private HeaterDurations _onCycleDuration;
 
     [ObservableProperty]
-    private HeaterDurationSetting _offCycleDuration;
+    private HeaterDurations _offCycleDuration;
 
     public void SetUpPropertyChangedHandler()
     {

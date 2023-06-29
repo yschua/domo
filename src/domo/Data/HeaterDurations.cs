@@ -2,7 +2,7 @@
 
 namespace domo.Data;
 
-public partial class HeaterDurationSetting : ObservableObject
+public partial class HeaterDurations : ObservableObject
 {
     [ObservableProperty]
     private TimeSpan? _initialDuration;

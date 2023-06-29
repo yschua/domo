@@ -24,7 +24,7 @@
 
     HeaterLevel SelectedLevel { get; set; }
 
-    HeaterLevelSetting SelectedHeaterLevelSetting => SelectedLevel switch
+    HeaterSetting SelectedHeaterLevelSetting => SelectedLevel switch
     {
         HeaterLevel.Low => Heater.LowLevelSetting,
         HeaterLevel.High => Heater.HighLevelSetting

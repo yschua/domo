@@ -27,10 +27,10 @@ public partial class Heater : ObservableObject
     private HeaterLevel _level;
 
     [ObservableProperty]
-    private HeaterLevelSetting _lowLevelSetting;
+    private HeaterSetting _lowLevelSetting;
 
     [ObservableProperty]
-    private HeaterLevelSetting _highLevelSetting;
+    private HeaterSetting _highLevelSetting;
 
     [ObservableProperty]
     private TimeSpan? _overrideDuration;

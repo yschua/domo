@@ -5,30 +5,30 @@ public class HeaterFactory
     public Heater Create()
     {
         var heater = new Heater();
-        heater.LowLevelSetting = new HeaterLevelSetting
+        heater.LowLevelSetting = new HeaterSetting
         {
-            OnCycleDuration = new HeaterDurationSetting
+            OnCycleDuration = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
                 DurationChange = TimeSpan.Zero
             },
-            OffCycleDuration = new HeaterDurationSetting
+            OffCycleDuration = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
                 DurationChange = TimeSpan.Zero
             }
         };
-        heater.HighLevelSetting = new HeaterLevelSetting
+        heater.HighLevelSetting = new HeaterSetting
         {
-            OnCycleDuration = new HeaterDurationSetting
+            OnCycleDuration = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
                 DurationChange = TimeSpan.Zero
             },
-            OffCycleDuration = new HeaterDurationSetting
+            OffCycleDuration = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
