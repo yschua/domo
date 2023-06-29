@@ -19,15 +19,10 @@ public class HeaterDatabaseService
 
         Heater = Heaters.FindAll().FirstOrDefault();
         Heater.SetUpPropertyChangedHandler();
-        Heater.RegisterUpdateHandler(Update);
+        Heater.RegisterUpdateHandler(() => Heaters.Update(Heater));
     }
 
     public Heater Heater { get; }
 
     private ILiteCollection<Heater> Heaters { get; }
-
-    public void Update()
-    {
-        Heaters.Update(Heater);
-    }
 }

@@ -35,6 +35,7 @@ public class HeaterFactory
                 DurationChange = TimeSpan.Zero
             }
         };
+        heater.OverrideDuration = TimeSpan.Zero;
         return heater;
     }
 }
