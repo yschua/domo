@@ -7,13 +7,13 @@ public class HeaterFactory
         var heater = new Heater();
         heater.LowLevelSetting = new HeaterSetting
         {
-            OnCycleDuration = new HeaterDurations
+            OnCycleDurations = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
                 DurationChange = TimeSpan.Zero
             },
-            OffCycleDuration = new HeaterDurations
+            HaltCycleDurations = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
@@ -22,13 +22,13 @@ public class HeaterFactory
         };
         heater.HighLevelSetting = new HeaterSetting
         {
-            OnCycleDuration = new HeaterDurations
+            OnCycleDurations = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,
                 DurationChange = TimeSpan.Zero
             },
-            OffCycleDuration = new HeaterDurations
+            HaltCycleDurations = new HeaterDurations
             {
                 InitialDuration = TimeSpan.Zero,
                 FinalDuration = TimeSpan.Zero,

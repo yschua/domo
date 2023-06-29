@@ -5,14 +5,14 @@ namespace domo.Data;
 public partial class HeaterSetting : ObservableObject
 {
     [ObservableProperty]
-    private HeaterDurations _onCycleDuration;
+    private HeaterDurations _onCycleDurations;
 
     [ObservableProperty]
-    private HeaterDurations _offCycleDuration;
+    private HeaterDurations _haltCycleDurations;
 
     public void SetUpPropertyChangedHandler()
     {
-        OnCycleDuration.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OnCycleDuration));
-        OffCycleDuration.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OffCycleDuration));
+        OnCycleDurations.PropertyChanged += (_, _) => OnPropertyChanged(nameof(OnCycleDurations));
+        HaltCycleDurations.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HaltCycleDurations));
     }
 }
