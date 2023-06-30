@@ -5,6 +5,8 @@ VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "domo", "src\domo\domo.csproj", "{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "domo.Tests", "test\domo.Tests\domo.Tests.csproj", "{C2B88107-3F21-44EC-9E64-FD7CD267A0BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F59E10BD-40DB-4FBA-B6FD-5C8F630B0054}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2B88107-3F21-44EC-9E64-FD7CD267A0BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2B88107-3F21-44EC-9E64-FD7CD267A0BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2B88107-3F21-44EC-9E64-FD7CD267A0BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2B88107-3F21-44EC-9E64-FD7CD267A0BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

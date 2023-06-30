@@ -18,6 +18,7 @@ public class HeaterDatabaseService
         }
 
         Heater = Heaters.FindAll().FirstOrDefault();
+        Heater.Reset();
         Heater.SetUpPropertyChangedHandler();
         Heater.RegisterUpdateHandler(() => Heaters.Update(Heater));
     }

@@ -18,7 +18,23 @@ public enum HeaterLevel
 
 public partial class Heater : ObservableObject
 {
+    public event EventHandler<HeaterMode> HeaterModeChanged;
+
     public int Id { get; set; }
+
+    public HeaterSetting CurrentSetting { get; set; }
+
+    public DateTime? OverrideStart { get; set; }
+
+    public DateTime CurrentCycleStart { get; set; }
+
+    //public DateTime CurrentCycleEnd { get; set; }
+
+    public bool IsActivated { get; set; }
+    
+    public HeaterState CurrentState { get; set; }
+
+    public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
 
     [ObservableProperty]
     private HeaterMode _mode;
@@ -38,6 +54,12 @@ public partial class Heater : ObservableObject
     [ObservableProperty]
     private HeaterLevel _overrideLevel;
 
+    public void Reset()
+    {
+        Mode = HeaterMode.Off;
+        //Deactivate();
+    }
+
     public void SetUpPropertyChangedHandler()
     {
         LowLevelSetting.SetUpPropertyChangedHandler();
@@ -50,5 +72,11 @@ public partial class Heater : ObservableObject
     public void RegisterUpdateHandler(Action handler)
     {
         PropertyChanged += (_, _) => handler();
+    }
+
+    partial void OnModeChanged(HeaterMode oldValue, HeaterMode newValue)
+    {
+        PreviousMode = oldValue;
+        HeaterModeChanged(this, newValue);
     }
 }
