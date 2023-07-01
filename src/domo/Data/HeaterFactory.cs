@@ -2,9 +2,9 @@
 
 public class HeaterFactory
 {
-    public Heater Create(TimeSpan? defaultDuration = null)
+    public Heater Create(TimeSpan? defaultDurationParam = null)
     {
-        defaultDuration ??= TimeSpan.FromMinutes(10);
+        var defaultDuration = defaultDurationParam ?? TimeSpan.FromMinutes(10);
         return new Heater
         {
             Mode = HeaterMode.Off,

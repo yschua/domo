@@ -5,13 +5,13 @@ namespace domo.Data;
 public partial class HeaterDurations : ObservableObject
 {
     [ObservableProperty]
-    private TimeSpan? _initialDuration;
+    private TimeSpan _initialDuration;
 
     [ObservableProperty]
-    private TimeSpan? _finalDuration;
+    private TimeSpan _finalDuration;
 
     [ObservableProperty]
-    private TimeSpan? _durationChange;
+    private TimeSpan _durationChange;
 
     public void Set(TimeSpan initialDuration, TimeSpan finalDuration, TimeSpan durationChange)
     {
