@@ -26,7 +26,9 @@ public partial class Heater : ObservableObject
 
     public HeaterSetting CurrentSetting { get; private set; }
 
-    public DateTime CycleStart { get; set; }
+    public DateTime CycleStart { get; private set; }
+
+    public int CycleNumber { get; private set; }
 
     public TimeSpan OnDuration { get; private set; }
 
@@ -113,22 +115,40 @@ public partial class Heater : ObservableObject
             HeaterLevel.Low => LowLevelSetting,
             HeaterLevel.High => HighLevelSetting
         };
-
-        OnDuration = CurrentSetting.OnCycleDurations.InitialDuration.Value;
-        HaltDuration = CurrentSetting.HaltCycleDurations.InitialDuration.Value;
     }
 
-    public void ProgressOnDuration()
+    public void StartNextCycle(bool resetCycle)
     {
-        var durations = CurrentSetting.OnCycleDurations;
-        OnDuration -= durations.DurationChange.Value;
-        OnDuration = (OnDuration < durations.FinalDuration.Value) ? durations.FinalDuration.Value : OnDuration;
-    }
+        CycleStart = DateTime.Now;
 
-    public void ProgressHaltDuration()
-    {
-        var durations = CurrentSetting.HaltCycleDurations;
-        HaltDuration -= durations.DurationChange.Value;
-        HaltDuration = (HaltDuration < durations.FinalDuration.Value) ? durations.FinalDuration.Value : HaltDuration;
+        if (resetCycle)
+        {
+            CycleNumber = 0;
+            OnDuration = CurrentSetting.OnCycleDurations.InitialDuration.Value;
+            return;
+        }
+
+        CycleNumber++;
+
+        if (CycleNumber == 1)
+        {
+            HaltDuration = CurrentSetting.HaltCycleDurations.InitialDuration.Value;
+            return;
+        }
+
+        if (IsActivated)
+        {
+            var durations = CurrentSetting.OnCycleDurations;
+            OnDuration -= durations.DurationChange.Value;
+            OnDuration = (OnDuration < durations.FinalDuration.Value)
+                ? durations.FinalDuration.Value : OnDuration;
+        }
+        else
+        {
+            var durations = CurrentSetting.HaltCycleDurations;
+            HaltDuration -= durations.DurationChange.Value;
+            HaltDuration = (HaltDuration < durations.FinalDuration.Value)
+                ? durations.FinalDuration.Value : HaltDuration;
+        }
     }
 }

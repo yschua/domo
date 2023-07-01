@@ -124,8 +124,8 @@ public class HeaterStateMachine : IDisposable, IHostedService
             if (mode == HeaterMode.Override)
             {
                 _heater.OverrideStart = DateTime.Now;
-                //_heater.CycleStart = DateTime.Now;
                 _heater.SetCurrentSetting(_heater.OverrideLevel);
+                _heater.StartNextCycle(resetCycle: true);
             }
 
             _machine.Fire(mode switch
@@ -186,18 +186,18 @@ public class HeaterStateMachine : IDisposable, IHostedService
                     {
                         case HeaterState.OverrideHalt:
                         case HeaterState.ScheduleHalt:
-                            _heater.ProgressOnDuration();
                             TimerHeaterOn();
                             break;
                         case HeaterState.OverrideOn:
                         case HeaterState.ScheduleOn:
-                            _heater.ProgressHaltDuration();
                             TimerHeaterHalt();
                             break;
                         default:
                             throw new InvalidOperationException(
                                 $"Cycle duration end in invalid state: {CurrentState}");
                     }
+
+                    _heater.StartNextCycle(resetCycle: false);
                 }
             }
 
@@ -241,14 +241,12 @@ public class HeaterStateMachine : IDisposable, IHostedService
     private void DeactivateHeater(Action? nextCycleTrigger = null)
     {
         _nextCycleTrigger = nextCycleTrigger;
-        _heater.CycleStart = DateTime.Now;
         _heater.Deactivate();
     }
 
     private void ActivateHeater(Action? nextCycleTrigger = null)
     {
         _nextCycleTrigger = nextCycleTrigger;
-        _heater.CycleStart = DateTime.Now;
         _heater.Activate();
     }
 }

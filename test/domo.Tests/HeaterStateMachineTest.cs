@@ -138,8 +138,9 @@ public class HeaterStateMachineTest : IAsyncLifetime
         });
     }
 
+    // TODO extend to test both override and schedule mode cycling?
     [Fact]
-    public async Task CycleDurationAdjustment()
+    public async Task DynamicCycleDuration_OnDurationOnly()
     {
         _heater.OverrideDuration = TimeSpan.FromMilliseconds(2500);
         _heater.OverrideLevel = HeaterLevel.Low;
@@ -172,9 +173,44 @@ public class HeaterStateMachineTest : IAsyncLifetime
         });
     }
 
+    [Fact]
+    public async Task DynamicCycleDuration_BothDurations()
+    {
+        _heater.OverrideDuration = TimeSpan.FromMilliseconds(3000);
+        _heater.OverrideLevel = HeaterLevel.Low;
+        _heater.LowLevelSetting.OnCycleDurations.InitialDuration = TimeSpan.FromMilliseconds(500);
+        _heater.LowLevelSetting.OnCycleDurations.FinalDuration = TimeSpan.FromMilliseconds(300);
+        _heater.LowLevelSetting.OnCycleDurations.DurationChange = TimeSpan.FromMilliseconds(100);
+        _heater.LowLevelSetting.HaltCycleDurations.InitialDuration = TimeSpan.FromMilliseconds(400);
+        _heater.LowLevelSetting.HaltCycleDurations.FinalDuration = TimeSpan.FromMilliseconds(200);
+        _heater.LowLevelSetting.HaltCycleDurations.DurationChange = TimeSpan.FromMilliseconds(200);
+        _heater.Mode = HeaterMode.Override;
+
+        /*
+         * On   500ms 0ms
+         * Halt 400ms 500ms
+         * On   400ms 900ms
+         * Halt 200ms 1300ms
+         * On   300ms 1500ms
+         * Halt 200ms 1800ms
+         * On   300ms 2000ms
+         * Halt 200ms 2300ms
+         */
+
+        await AssertStateTimings(new[]
+        {
+            (100, HeaterState.OverrideOn),
+            (600, HeaterState.OverrideHalt),
+            (1000, HeaterState.OverrideOn),
+            (1400, HeaterState.OverrideHalt),
+            (1600, HeaterState.OverrideOn),
+            (1900, HeaterState.OverrideHalt),
+            (2100, HeaterState.OverrideOn),
+            (2500, HeaterState.OverrideHalt),
+        });
+    }
 
     // changing heater level during override
-    
 
     [Fact]
     public void ChangeHeaterDurationsDuringOverride()
