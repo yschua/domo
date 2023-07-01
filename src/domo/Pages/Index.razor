@@ -36,7 +36,7 @@
     </MudItem>
 
     <MudItem xs="12">
-        <FlameAnimation IsOn=@(Heater.Mode != HeaterMode.Off) />
+        <FlameAnimation IsOn=@Heater.IsActivated />
     </MudItem>
 
     <MudItem xs="12">

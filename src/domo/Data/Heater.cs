@@ -32,7 +32,6 @@ public partial class Heater : ObservableObject
 
     public TimeSpan HaltDuration { get; private set; }
 
-    public bool IsActivated { get; set; }
 
     //public HeaterState CurrentState { get; set; }
 
@@ -43,8 +42,10 @@ public partial class Heater : ObservableObject
     //                    CurrentState == HeaterState.ScheduleOn;
 
 
-
     public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
+
+    [ObservableProperty]
+    public bool _isActivated;
 
     [ObservableProperty]
     private HeaterMode _mode;
@@ -70,6 +71,16 @@ public partial class Heater : ObservableObject
         //Deactivate();
     }
 
+    public void Activate()
+    {
+        IsActivated = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActivated = false;
+    }
+
     public void SetUpPropertyChangedHandler()
     {
         LowLevelSetting.SetUpPropertyChangedHandler();
@@ -87,7 +98,7 @@ public partial class Heater : ObservableObject
     partial void OnModeChanged(HeaterMode oldValue, HeaterMode newValue)
     {
         PreviousMode = oldValue;
-        HeaterModeChanged(this, newValue);
+        HeaterModeChanged?.Invoke(this, newValue);
     }
 
     partial void OnOverrideLevelChanged(HeaterLevel value)

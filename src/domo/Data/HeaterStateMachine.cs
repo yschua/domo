@@ -25,19 +25,12 @@ public enum HeaterTrigger
     Halt,
 }
 
-public interface IHeaterControl
-{
-    bool IsActive { get; }
-    void Activate();
-    void Deactivate();
-}
-
 public class HeaterStateMachineOptions
 {
     public TimeSpan TickInterval { get; init; } = TimeSpan.FromSeconds(1);
 }
 
-public class HeaterStateMachine : IDisposable
+public class HeaterStateMachine : IDisposable, IHostedService
 {
     private readonly StateMachine<HeaterState, HeaterTrigger> _machine;
     private readonly Heater _heater;
@@ -95,7 +88,6 @@ public class HeaterStateMachine : IDisposable
 
         _timer = new System.Timers.Timer(options.Value.TickInterval);
         _timer.Elapsed += TimerTick;
-        _timer.Start();
     }
 
     public void Dispose()
@@ -103,8 +95,19 @@ public class HeaterStateMachine : IDisposable
         _timer.Dispose();
     }
 
-    public HeaterState CurrentState => _machine.State;
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _timer.Start();
+        return Task.CompletedTask;
+    }
 
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _timer.Stop();
+        return Task.CompletedTask;
+    }
+
+    public HeaterState CurrentState => _machine.State;
 
     private void OnTransition(StateMachine<HeaterState, HeaterTrigger>.Transition transition)
     {
@@ -237,11 +240,13 @@ public class HeaterStateMachine : IDisposable
     {
         _nextCycleTrigger = nextCycleTrigger;
         _heater.CycleStart = DateTime.Now;
+        _heater.Deactivate();
     }
 
     private void ActivateHeater(Action? nextCycleTrigger = null)
     {
         _nextCycleTrigger = nextCycleTrigger;
         _heater.CycleStart = DateTime.Now;
+        _heater.Activate();
     }
 }

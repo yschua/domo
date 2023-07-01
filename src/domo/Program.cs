@@ -9,6 +9,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<HeaterDatabaseService>();
+builder.Services.AddOptions<HeaterStateMachineOptions>();
+builder.Services.AddHostedService<HeaterStateMachine>();
 builder.Services.AddSingleton<HeaterFactory>();
 builder.Services.AddSingleton<Heater>(p => p.GetRequiredService<HeaterDatabaseService>().Heater);
 builder.Services.AddSingleton<LiteDatabase>(_ =>
