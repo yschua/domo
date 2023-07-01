@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Stateless;
+using System.Diagnostics;
 using System.Timers;
 
 namespace domo.Data;
@@ -31,6 +32,11 @@ public interface IHeaterControl
     void Deactivate();
 }
 
+public class HeaterStateMachineOptions
+{
+    public TimeSpan TickInterval { get; init; } = TimeSpan.FromSeconds(1);
+}
+
 public class HeaterStateMachine : IDisposable
 {
     private readonly StateMachine<HeaterState, HeaterTrigger> _machine;
@@ -44,7 +50,7 @@ public class HeaterStateMachine : IDisposable
         _machine = new(HeaterState.Off);
         _heater = heater;
 
-        // _machine.OnTransitioned(); TODO logging
+        _machine.OnTransitioned(OnTransition);
 
         _machine.Configure(HeaterState.Off)
             .OnEntry(t => DeactivateHeater())
@@ -99,22 +105,32 @@ public class HeaterStateMachine : IDisposable
 
     public HeaterState CurrentState => _machine.State;
 
+
+    private void OnTransition(StateMachine<HeaterState, HeaterTrigger>.Transition transition)
+    {
+        Debug.WriteLine($"[{DateTime.Now:s.fff}] {transition.Trigger}: {transition.Source} -> {transition.Destination}");
+    }
+
     private void ChangeHeaterMode(HeaterMode mode)
     {
         lock (_lock)
         {
             // user change invalidates current timers?
+
+
+            if (mode == HeaterMode.Override)
+            {
+                _heater.OverrideStart = DateTime.Now;
+                //_heater.CycleStart = DateTime.Now;
+                _heater.SetCurrentSetting(_heater.OverrideLevel);
+            }
+
             _machine.Fire(mode switch
             {
                 HeaterMode.Off => HeaterTrigger.Off,
                 HeaterMode.Override => HeaterTrigger.Override,
                 HeaterMode.Schedule => HeaterTrigger.Schedule,
             });
-
-            if (mode == HeaterMode.Override)
-            {
-                _heater.OverrideStart = DateTime.Now;
-            }
         }
     }
 
@@ -131,6 +147,8 @@ public class HeaterStateMachine : IDisposable
 
     private void TimerTick(object? source, ElapsedEventArgs e)
     {
+        Debug.WriteLine($"[{DateTime.Now:s.fff}] Tick");
+
         lock (_lock)
         {
             if (_heater.Mode == HeaterMode.Override)
@@ -140,11 +158,53 @@ public class HeaterStateMachine : IDisposable
                 {
                     _heater.Mode = _heater.PreviousMode;
 
+                    _nextCycleTrigger = null;
+
                     //_nextCycleTrigger = null;
                     //UserChangedHeaterMode(HeaterMode.Off);
                     // need to restore previous mode
                 }
             }
+
+            TimeSpan? cycleDuration = CurrentState switch
+            {
+                HeaterState.OverrideHalt => _heater.HaltDuration,
+                HeaterState.ScheduleHalt => _heater.HaltDuration,
+                HeaterState.OverrideOn => _heater.OnDuration,
+                HeaterState.ScheduleOn => _heater.OnDuration,
+                _ => null
+            };
+
+            if (cycleDuration != null)
+            {
+                if (DateTime.Now > (_heater.CycleStart + cycleDuration))
+                {
+                    switch (CurrentState)
+                    {
+                        case HeaterState.OverrideHalt:
+                        case HeaterState.ScheduleHalt:
+                            TimerHeaterOn();
+                            break;
+                        case HeaterState.OverrideOn:
+                        case HeaterState.ScheduleOn:
+                            TimerHeaterHalt();
+                            break;
+                        default:
+                            throw new InvalidOperationException(
+                                $"Cycle duration end in invalid state: {CurrentState}");
+                    }
+                }
+            }
+
+            //if (_nextCycleTrigger != null)
+            //{
+            //    TimeSpan cycleDuration;
+            //    if (_heater.IsHalted)
+            //    {
+            //        cycleDuration = _h
+            //    }
+
+            //}
 
 
             // when schedule ends
@@ -175,11 +235,13 @@ public class HeaterStateMachine : IDisposable
 
     private void DeactivateHeater(Action? nextCycleTrigger = null)
     {
+        _nextCycleTrigger = nextCycleTrigger;
+        _heater.CycleStart = DateTime.Now;
     }
 
     private void ActivateHeater(Action? nextCycleTrigger = null)
     {
-        //_heater.CurrentCycleStart = DateTime.Now;
-        //_nextCycleTrigger = nextCycleTrigger;
+        _nextCycleTrigger = nextCycleTrigger;
+        _heater.CycleStart = DateTime.Now;
     }
 }

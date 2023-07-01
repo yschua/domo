@@ -22,17 +22,27 @@ public partial class Heater : ObservableObject
 
     public int Id { get; set; }
 
-    public HeaterSetting CurrentSetting { get; set; }
+    public DateTime OverrideStart { get; set; }
 
-    public DateTime? OverrideStart { get; set; }
+    public HeaterSetting CurrentSetting { get; private set; }
 
-    public DateTime CurrentCycleStart { get; set; }
+    public DateTime CycleStart { get; set; }
 
-    //public DateTime CurrentCycleEnd { get; set; }
+    public TimeSpan OnDuration { get; private set; }
+
+    public TimeSpan HaltDuration { get; private set; }
 
     public bool IsActivated { get; set; }
-    
-    public HeaterState CurrentState { get; set; }
+
+    //public HeaterState CurrentState { get; set; }
+
+    //public bool IsHalted => CurrentState == HeaterState.OverrideHalt ||
+    //                        CurrentState == HeaterState.ScheduleHalt;
+
+    //public bool IsOn => CurrentState == HeaterState.OverrideOn ||
+    //                    CurrentState == HeaterState.ScheduleOn;
+
+
 
     public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
 
@@ -78,5 +88,36 @@ public partial class Heater : ObservableObject
     {
         PreviousMode = oldValue;
         HeaterModeChanged(this, newValue);
+    }
+
+    partial void OnOverrideLevelChanged(HeaterLevel value)
+    {
+        SetCurrentSetting(value);
+    }
+
+    public void SetCurrentSetting(HeaterLevel level)
+    {
+        CurrentSetting = level switch
+        {
+            HeaterLevel.Low => LowLevelSetting,
+            HeaterLevel.High => HighLevelSetting
+        };
+
+        OnDuration = CurrentSetting.OnCycleDurations.InitialDuration.Value;
+        HaltDuration = CurrentSetting.HaltCycleDurations.InitialDuration.Value;
+    }
+
+    public void ProgressOnDuration()
+    {
+        var durations = CurrentSetting.OnCycleDurations;
+        OnDuration -= durations.DurationChange.Value;
+        OnDuration = (OnDuration < durations.FinalDuration.Value) ? durations.FinalDuration.Value : OnDuration;
+    }
+
+    public void ProgressHaltDuration()
+    {
+        var durations = CurrentSetting.HaltCycleDurations;
+        HaltDuration -= durations.DurationChange.Value;
+        HaltDuration = (HaltDuration < durations.FinalDuration.Value) ? durations.FinalDuration.Value : HaltDuration;
     }
 }
