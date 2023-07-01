@@ -186,10 +186,12 @@ public class HeaterStateMachine : IDisposable, IHostedService
                     {
                         case HeaterState.OverrideHalt:
                         case HeaterState.ScheduleHalt:
+                            _heater.ProgressOnDuration();
                             TimerHeaterOn();
                             break;
                         case HeaterState.OverrideOn:
                         case HeaterState.ScheduleOn:
+                            _heater.ProgressHaltDuration();
                             TimerHeaterHalt();
                             break;
                         default:
