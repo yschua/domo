@@ -34,7 +34,6 @@ public class HeaterStateMachine : IDisposable, IHostedService
 {
     private readonly StateMachine<HeaterState, HeaterTrigger> _machine;
     private readonly Heater _heater;
-    private Action? _nextCycleTrigger;
     private readonly System.Timers.Timer _timer;
     private readonly object _lock = new object();
 
@@ -160,12 +159,6 @@ public class HeaterStateMachine : IDisposable, IHostedService
                 if (DateTime.Now > (_heater.OverrideStart + _heater.OverrideDuration))
                 {
                     _heater.Mode = _heater.PreviousMode;
-
-                    _nextCycleTrigger = null;
-
-                    //_nextCycleTrigger = null;
-                    //UserChangedHeaterMode(HeaterMode.Off);
-                    // need to restore previous mode
                 }
             }
 
@@ -180,6 +173,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
             if (cycleDuration != null)
             {
+                // when cycle ends
                 if (DateTime.Now > (_heater.CycleStart + cycleDuration))
                 {
                     switch (CurrentState)
@@ -240,13 +234,11 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
     private void DeactivateHeater(Action? nextCycleTrigger = null)
     {
-        _nextCycleTrigger = nextCycleTrigger;
         _heater.Deactivate();
     }
 
     private void ActivateHeater(Action? nextCycleTrigger = null)
     {
-        _nextCycleTrigger = nextCycleTrigger;
         _heater.Activate();
     }
 }
