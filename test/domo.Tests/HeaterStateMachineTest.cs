@@ -2,12 +2,10 @@ using domo.Data;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
-using System.Linq;
 using Xunit;
 
 namespace domo.Tests;
 
-// As the timer is not very precise, allow tolerance of 100 ms
 public class HeaterStateMachineTest : IAsyncLifetime
 {
     private readonly Heater _heater;
@@ -41,11 +39,12 @@ public class HeaterStateMachineTest : IAsyncLifetime
         _machine.CurrentState.Should().Be(expectedState, because);
     }
 
-    private async Task AssertStateTimings(params (int Delay, HeaterState ExpectedState)[] expectedTimings)
+    private async Task AssertStateTimings(params (int Elapsed, HeaterState ExpectedState)[] expectedTimings)
     {
         await Task.WhenAll(expectedTimings.Select(
-            t => Task.Delay(t.Delay).ContinueWith(
-                _ => AssertState(t.ExpectedState, $"{t.ExpectedState} expected after {t.Delay} ms")
+            // allow tolerance of 100 ms as the timer is not precise
+            t => Task.Delay(t.Elapsed + 100).ContinueWith(
+                _ => AssertState(t.ExpectedState, $"{t.ExpectedState} expected after {t.Elapsed} ms")
         )));
     }
 
@@ -129,12 +128,20 @@ public class HeaterStateMachineTest : IAsyncLifetime
         _heater.OverrideLevel = HeaterLevel.Low;
         _heater.Mode = HeaterMode.Override;
 
+        /*
+         * Cycle    Durati. Elapsed
+         * On       200ms   0ms
+         * Halt     200ms   200ms
+         * On       200ms   400ms
+         * Off      -       600ms
+         */
+
         await AssertStateTimings(new[]
         {
-            (100, HeaterState.OverrideOn),
-            (300, HeaterState.OverrideHalt),
-            (500, HeaterState.OverrideOn),
-            (700, HeaterState.Off),
+            (0, HeaterState.OverrideOn),
+            (200, HeaterState.OverrideHalt),
+            (400, HeaterState.OverrideOn),
+            (600, HeaterState.Off),
         });
     }
 
@@ -161,14 +168,14 @@ public class HeaterStateMachineTest : IAsyncLifetime
 
         await AssertStateTimings(new[]
         {
-            (100, HeaterState.OverrideOn),
-            (600, HeaterState.OverrideHalt),
-            (800, HeaterState.OverrideOn),
-            (1200, HeaterState.OverrideHalt),
-            (1400, HeaterState.OverrideOn),
-            (1700, HeaterState.OverrideHalt),
-            (1900, HeaterState.OverrideOn),
-            (2200, HeaterState.OverrideHalt),
+            (0, HeaterState.OverrideOn),
+            (500, HeaterState.OverrideHalt),
+            (700, HeaterState.OverrideOn),
+            (1100, HeaterState.OverrideHalt),
+            (1300, HeaterState.OverrideOn),
+            (1600, HeaterState.OverrideHalt),
+            (1800, HeaterState.OverrideOn),
+            (2100, HeaterState.OverrideHalt),
         });
     }
 
@@ -195,14 +202,14 @@ public class HeaterStateMachineTest : IAsyncLifetime
 
         await AssertStateTimings(new[]
         {
-            (100, HeaterState.OverrideOn),
-            (600, HeaterState.OverrideHalt),
-            (1000, HeaterState.OverrideOn),
-            (1400, HeaterState.OverrideHalt),
-            (1600, HeaterState.OverrideOn),
-            (1900, HeaterState.OverrideHalt),
-            (2100, HeaterState.OverrideOn),
-            (2500, HeaterState.OverrideHalt),
+            (0, HeaterState.OverrideOn),
+            (500, HeaterState.OverrideHalt),
+            (900, HeaterState.OverrideOn),
+            (1300, HeaterState.OverrideHalt),
+            (1500, HeaterState.OverrideOn),
+            (1800, HeaterState.OverrideHalt),
+            (2000, HeaterState.OverrideOn),
+            (2300, HeaterState.OverrideHalt),
         });
     }
 
@@ -218,19 +225,29 @@ public class HeaterStateMachineTest : IAsyncLifetime
         // adjust initial on duration has no effect
         _heater.LowLevelSetting.OnCycleDurations.InitialDuration = TimeSpan.FromHours(1);
 
-        // adjust initial halt duration before first cycle
+        /*
+         * Cycle    Durati. Elapsed
+         * On       200ms   0ms     <- HaltCycle InitialDuration 200ms
+         * Halt     200ms   200ms 
+         * On       200ms   400ms
+         */
+
+        var task = AssertStateTimings(new[]
+        {
+            (0, HeaterState.OverrideOn),
+            (200, HeaterState.OverrideHalt),
+            (400, HeaterState.OverrideOn),
+        });
+
+        // adjust initial halt duration during first on cycle
+        await Task.Delay(100);
         _heater.LowLevelSetting.HaltCycleDurations.InitialDuration = TimeSpan.FromMilliseconds(200);
 
-        await AssertStateTimings(new[]
-        {
-            (100, HeaterState.OverrideOn),
-            (300, HeaterState.OverrideHalt),
-            (500, HeaterState.OverrideOn),
-        });
+        await task;
     }
 
     [Fact]
-    public async Task AdjustCycleDurationDuringCycle_ChangeDuration()
+    public async Task AdjustCycleDurationDuringCycle_DurationChange()
     {
         _heater.OverrideDuration = TimeSpan.FromMilliseconds(2500);
         _heater.OverrideLevel = HeaterLevel.Low;
@@ -243,26 +260,26 @@ public class HeaterStateMachineTest : IAsyncLifetime
          * On       500ms   0ms
          * Halt     200ms   500ms
          * On       500ms   700ms
-         * Halt     200ms   1200ms <- OnCycle DurationChange 300ms
+         * Halt     200ms   1200ms  <- OnCycle DurationChange 300ms
          * On       200ms   1400ms
          * Halt     200ms   1600ms
          */
 
-        await AssertStateTimings(new[]
+        var task = AssertStateTimings(new[]
         {
-            (100, HeaterState.OverrideOn),
-            (600, HeaterState.OverrideHalt),
-            (800, HeaterState.OverrideOn),
-            (1300, HeaterState.OverrideHalt),
+            (0, HeaterState.OverrideOn),
+            (500, HeaterState.OverrideHalt),
+            (700, HeaterState.OverrideOn),
+            (1200, HeaterState.OverrideHalt),
+            (1400, HeaterState.OverrideOn),
+            (1600, HeaterState.OverrideHalt),
         });
 
+        // adjust change duration
+        await Task.Delay(1300);
         _heater.LowLevelSetting.OnCycleDurations.DurationChange = TimeSpan.FromMilliseconds(300);
 
-        await AssertStateTimings(new[]
-        {
-            (1500 - 1300, HeaterState.OverrideOn),
-            (1700 - 1300, HeaterState.OverrideHalt),
-        });
+        await task;
     }
 
     // zero change duration should not alter current duration
