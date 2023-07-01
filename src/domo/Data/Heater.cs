@@ -139,14 +139,20 @@ public partial class Heater : ObservableObject
         if (IsActivated)
         {
             var durations = CurrentSetting.OnCycleDurations;
-            OnDuration -= durations.DurationChange;
-            OnDuration = (OnDuration < durations.FinalDuration) ? durations.FinalDuration : OnDuration;
+            if (durations.DurationChange > TimeSpan.Zero)
+            {
+                OnDuration -= durations.DurationChange;
+                OnDuration = (OnDuration < durations.FinalDuration) ? durations.FinalDuration : OnDuration;
+            }
         }
         else
         {
             var durations = CurrentSetting.HaltCycleDurations;
-            HaltDuration -= durations.DurationChange;
-            HaltDuration = (HaltDuration < durations.FinalDuration) ? durations.FinalDuration : HaltDuration;
+            if (durations.DurationChange > TimeSpan.Zero)
+            {
+                HaltDuration -= durations.DurationChange;
+                HaltDuration = (HaltDuration < durations.FinalDuration) ? durations.FinalDuration : HaltDuration;
+            }
         }
     }
 }

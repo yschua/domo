@@ -14,6 +14,7 @@ public class HeaterStateMachineTest : IAsyncLifetime
     public HeaterStateMachineTest()
     {
         _heater = new HeaterFactory().Create(TimeSpan.FromMilliseconds(200));
+        _heater.OverrideDuration = TimeSpan.FromMilliseconds(5000);
         var options = Options.Create(new HeaterStateMachineOptions
         {
             TickInterval = TimeSpan.FromMilliseconds(10)
@@ -146,6 +147,7 @@ public class HeaterStateMachineTest : IAsyncLifetime
     }
 
     // TODO extend to test both override and schedule mode cycling?
+
     [Fact]
     public async Task DynamicCycleDuration_OnDurationOnly()
     {
@@ -182,7 +184,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
     [Fact]
     public async Task DynamicCycleDuration_BothDurations()
     {
-        _heater.OverrideDuration = TimeSpan.FromMilliseconds(3000);
         _heater.OverrideLevel = HeaterLevel.Low;
         _heater.LowLevelSetting.OnCycleDurations.Set_ms(500, 300, 100);
         _heater.LowLevelSetting.HaltCycleDurations.Set_ms(400, 200, 200);
@@ -216,7 +217,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
     [Fact]
     public async Task AdjustCycleDurationDuringCycle_InitialDuration()
     {
-        _heater.OverrideDuration = TimeSpan.FromMilliseconds(2500);
         _heater.OverrideLevel = HeaterLevel.Low;
         _heater.LowLevelSetting.OnCycleDurations.Set_ms(200, 200, 0);
         _heater.LowLevelSetting.HaltCycleDurations.Set_ms(1_000_000, 200, 0);
@@ -249,7 +249,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
     [Fact]
     public async Task AdjustCycleDurationDuringCycle_DurationChange()
     {
-        _heater.OverrideDuration = TimeSpan.FromMilliseconds(2500);
         _heater.OverrideLevel = HeaterLevel.Low;
         _heater.LowLevelSetting.OnCycleDurations.Set_ms(500, 200, 0);
         _heater.LowLevelSetting.HaltCycleDurations.Set_ms(200, 200, 0);
@@ -282,7 +281,34 @@ public class HeaterStateMachineTest : IAsyncLifetime
         await task;
     }
 
-    // zero change duration should not alter current duration
+    [Fact]
+    public async Task ZeroDurationChange()
+    {
+        _heater.OverrideLevel = HeaterLevel.Low;
+        _heater.LowLevelSetting.OnCycleDurations.Set_ms(200, 100, 0);
+        _heater.LowLevelSetting.HaltCycleDurations.Set_ms(200, 300, 0);
+        _heater.Mode = HeaterMode.Override;
+
+        /*
+         * Cycle    Durati. Elapsed
+         * On       200ms   0ms
+         * Halt     200ms   200ms
+         * On       200ms   400ms
+         * Halt     200ms   600ms
+         * On       200ms   800ms
+         */
+
+        await AssertStateTimings(new[]
+        {
+            (0, HeaterState.OverrideOn),
+            (200, HeaterState.OverrideHalt),
+            (400, HeaterState.OverrideOn),
+            (600, HeaterState.OverrideHalt),
+            (800, HeaterState.OverrideOn),
+        });
+    }
+
+    // throw exception zero initial or final duration
 
     // changing heater level during override
 
