@@ -373,7 +373,12 @@ public class HeaterStateMachineTest : IAsyncLifetime
         });
     }
 
-    // throw exception zero initial or final duration
+    [Fact]
+    public void InvalidDuration()
+    {
+        Assert.Throws<ArgumentException>(() => _heater.LowLevelSetting.OnCycleDurations.Set_ms(0, 100, 0));
+        Assert.Throws<ArgumentException>(() => _heater.LowLevelSetting.OnCycleDurations.Set_ms(100, 0, 0));
+    }
 
     // changing heater level during override
 

@@ -5,18 +5,24 @@
     [Parameter]
     public HeaterDurations Setting { get; init; }
 
-    bool ChangeIsIncrease { get; set; }
-
     public TimeSpan? InitialDuration
     {
         get => Setting.InitialDuration;
-        set => Setting.InitialDuration = value ?? TimeSpan.FromMinutes(10);
+        set
+        {
+            var duration = value ?? TimeSpan.FromMinutes(10);
+            Setting.InitialDuration = Helper.Max(duration, TimeSpan.FromMinutes(1));
+        }
     }
 
     public TimeSpan? FinalDuration
     {
         get => Setting.FinalDuration;
-        set => Setting.FinalDuration = value ?? TimeSpan.FromMinutes(10);
+        set
+        {
+            var duration = value ?? TimeSpan.FromMinutes(10);
+            Setting.FinalDuration = Helper.Max(duration, TimeSpan.FromMinutes(1));
+        }
     }
 
     public TimeSpan? DurationChange
@@ -36,12 +42,7 @@
         <MudTimePicker TimeEditMode="TimeEditMode.OnlyMinutes" ClosingDelay="500" TimeFormat="m \m"
                        Label="Final Duration" @bind-Time="FinalDuration" />
 
-        @*<MudToggleIconButton @bind-Toggled="@ChangeIsIncrease"
-                                Icon="@Icons.Material.Filled.ArrowDownward" Color="@Color.Info" Title="Off"
-                                ToggledIcon="@Icons.Material.Filled.ArrowUpward" ToggledColor="@Color.Error" ToggledTitle="On" />*@
-
-        <MudTimePicker TimeEditMode="TimeEditMode.OnlyMinutes" ClosingDelay="500"
-                       TimeFormat="@((ChangeIsIncrease ? "+" : "−") + "m \\m")"
+        <MudTimePicker TimeEditMode="TimeEditMode.OnlyMinutes" ClosingDelay="500" TimeFormat="m \m"
                        Label="Duration Change" @bind-Time="DurationChange" />
     </MudCardContent>
 </MudCard>

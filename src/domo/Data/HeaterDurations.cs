@@ -31,4 +31,20 @@ public partial class HeaterDurations : ObservableObject
         Set(TimeSpan.FromMilliseconds(initialDuration), TimeSpan.FromMilliseconds(finalDuration),
             TimeSpan.FromMilliseconds(durationChange));
     }
+
+    partial void OnInitialDurationChanging(TimeSpan value)
+    {
+        if (value == TimeSpan.Zero)
+        {
+            throw new ArgumentException($"{nameof(InitialDuration)} cannot be zero");
+        }
+    }
+
+    partial void OnFinalDurationChanging(TimeSpan value)
+    {
+        if (value == TimeSpan.Zero)
+        {
+            throw new ArgumentException($"{nameof(FinalDuration)} cannot be zero");
+        }
+    }
 }

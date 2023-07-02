@@ -140,11 +140,11 @@ public partial class Heater : ObservableObject
         {
             if (duration < durationSetting.FinalDuration)
             {
-                duration = Min(durationSetting.FinalDuration, duration + durationSetting.DurationChange);
+                duration = Helper.Min(durationSetting.FinalDuration, duration + durationSetting.DurationChange);
             }
             else if (duration > durationSetting.FinalDuration)
             {
-                duration = Max(durationSetting.FinalDuration, duration - durationSetting.DurationChange);
+                duration = Helper.Max(durationSetting.FinalDuration, duration - durationSetting.DurationChange);
             }
         }
 
@@ -161,7 +161,4 @@ public partial class Heater : ObservableObject
             HaltDuration = duration;
         }
     }
-
-    private TimeSpan Max(TimeSpan val1, TimeSpan val2) => (val1 > val2) ? val1 : val2;
-    private TimeSpan Min(TimeSpan val1, TimeSpan val2) => (val1 < val2) ? val1 : val2;
 }
