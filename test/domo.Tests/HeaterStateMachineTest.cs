@@ -149,11 +149,11 @@ public class HeaterStateMachineTest : IAsyncLifetime
     // TODO extend to test both override and schedule mode cycling?
 
     [Fact]
-    public async Task DynamicCycleDuration_OnDurationOnly()
+    public async Task DynamicCycleDuration_OnCycle()
     {
-        _heater.OverrideDuration = TimeSpan.FromMilliseconds(2500);
         _heater.OverrideLevel = HeaterLevel.Low;
-        _heater.LowLevelSetting.OnCycleDurations.Set_ms(500, 300, 100);
+        var durations = _heater.LowLevelSetting.OnCycleDurations;
+        durations.Set_ms(500, 300, 100);
         _heater.Mode = HeaterMode.Override;
 
         /*
@@ -165,10 +165,16 @@ public class HeaterStateMachineTest : IAsyncLifetime
          * On       300ms   1300ms
          * Halt     200ms   1600ms
          * On       300ms   1800ms
-         * Halt     200ms   2100ms
+         * Halt     200ms   2100ms  <- FinalDuration to 500
+         * On       400ms   2300ms
+         * Halt     200ms   2700ms
+         * On       500ms   2900ms
+         * Halt     200ms   3400ms
+         * On       500ms   3600ms
+         * Halt     200ms   4100ms
          */
 
-        await AssertStateTimings(new[]
+        var task = AssertStateTimings(new[]
         {
             (0, HeaterState.OverrideOn),
             (500, HeaterState.OverrideHalt),
@@ -178,11 +184,72 @@ public class HeaterStateMachineTest : IAsyncLifetime
             (1600, HeaterState.OverrideHalt),
             (1800, HeaterState.OverrideOn),
             (2100, HeaterState.OverrideHalt),
+            (2300, HeaterState.OverrideOn),
+            (2700, HeaterState.OverrideHalt),
+            (2900, HeaterState.OverrideOn),
+            (3400, HeaterState.OverrideHalt),
+            (3600, HeaterState.OverrideOn),
+            (4100, HeaterState.OverrideHalt),
         });
+
+        await Task.Delay(2200);
+        durations.FinalDuration = TimeSpan.FromMilliseconds(500);
+        await task;
     }
 
     [Fact]
-    public async Task DynamicCycleDuration_BothDurations()
+    public async Task DynamicCycleDuration_HaltCycle()
+    {
+        _heater.OverrideLevel = HeaterLevel.Low;
+        var durations = _heater.LowLevelSetting.HaltCycleDurations;
+        durations.Set_ms(500, 300, 100);
+        _heater.Mode = HeaterMode.Override;
+
+        /*
+         * Cycle    Durati. Elapsed
+         * On       200ms   0ms
+         * Halt     500ms   200ms
+         * On       200ms   700ms
+         * Halt     400ms   900ms
+         * On       200ms   1300ms
+         * Halt     300ms   1500ms
+         * On       200ms   1800ms
+         * Halt     300ms   2000ms  <- FinalDuration to 500
+         * On       200ms   2300ms
+         * Halt     400ms   2500ms
+         * On       200ms   2900ms
+         * Halt     500ms   3100ms
+         * On       200ms   3600ms
+         * Halt     500ms   3800ms
+         * On       200ms   4300ms
+         */
+
+        var task = AssertStateTimings(new[]
+        {
+            (0, HeaterState.OverrideOn),
+            (200, HeaterState.OverrideHalt),
+            (700, HeaterState.OverrideOn),
+            (900, HeaterState.OverrideHalt),
+            (1300, HeaterState.OverrideOn),
+            (1500, HeaterState.OverrideHalt),
+            (1800, HeaterState.OverrideOn),
+            (2000, HeaterState.OverrideHalt),
+            (2300, HeaterState.OverrideOn),
+            (2500, HeaterState.OverrideHalt),
+            (2900, HeaterState.OverrideOn),
+            (3100, HeaterState.OverrideHalt),
+            (3600, HeaterState.OverrideOn),
+            (3800, HeaterState.OverrideHalt),
+            (4300, HeaterState.OverrideOn),
+        });
+
+        await Task.Delay(2100);
+        durations.FinalDuration = TimeSpan.FromMilliseconds(500);
+        await task;
+    }
+
+    [Fact]
+    public async Task DynamicCycleDuration_BothCycles()
     {
         _heater.OverrideLevel = HeaterLevel.Low;
         _heater.LowLevelSetting.OnCycleDurations.Set_ms(500, 300, 100);
@@ -242,7 +309,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
         // adjust initial halt duration during first on cycle
         await Task.Delay(100);
         _heater.LowLevelSetting.HaltCycleDurations.InitialDuration = TimeSpan.FromMilliseconds(200);
-
         await task;
     }
 
@@ -277,7 +343,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
         // adjust change duration
         await Task.Delay(1300);
         _heater.LowLevelSetting.OnCycleDurations.DurationChange = TimeSpan.FromMilliseconds(300);
-
         await task;
     }
 
