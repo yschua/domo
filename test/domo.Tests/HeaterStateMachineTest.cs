@@ -380,17 +380,43 @@ public class HeaterStateMachineTest : IAsyncLifetime
         Assert.Throws<ArgumentException>(() => _heater.LowLevelSetting.OnCycleDurations.Set_ms(100, 0, 0));
     }
 
-    // changing heater level during override
-
-    // changing final duration after settled
-
     [Fact]
-    public async Task ChangeSettingDuringOverride()
+    public async Task ChangeLevelDuringOverride()
     {
-        await Task.CompletedTask;
-    }
+        _heater.LowLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromMilliseconds(200));
+        _heater.LowLevelSetting.HaltCycleDurations.SetSingle(TimeSpan.FromMilliseconds(400));
 
-    // larger final duration than initial duration
+        _heater.HighLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromMilliseconds(400));
+        _heater.HighLevelSetting.HaltCycleDurations.SetSingle(TimeSpan.FromMilliseconds(200));
+
+        _heater.OverrideLevel = HeaterLevel.Low;
+        _heater.Mode = HeaterMode.Override;
+
+        /*
+         * Cycle    Durati. Elapsed
+         * On       200ms   0ms     <- HeaterMode to High
+         * Halt     200ms   200ms
+         * On       400ms   400ms   <- HeaterMode to Low
+         * Halt     400ms   800ms
+         * On       200ms   1200ms
+         */
+
+        var task = Task.WhenAll(
+            Task.Delay(100).ContinueWith(_ => _heater.OverrideLevel = HeaterLevel.High),
+            Task.Delay(500).ContinueWith(_ => _heater.OverrideLevel = HeaterLevel.Low)
+        );
+
+        await AssertStateTimings(new[]
+        {
+            (0, HeaterState.OverrideOn),
+            (200, HeaterState.OverrideHalt),
+            (400, HeaterState.OverrideOn),
+            (800, HeaterState.OverrideHalt),
+            (1200, HeaterState.OverrideOn),
+        });
+
+        await task;
+    }
 
     // test override clears schedule cycle
 

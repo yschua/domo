@@ -32,6 +32,11 @@ public partial class HeaterDurations : ObservableObject
             TimeSpan.FromMilliseconds(durationChange));
     }
 
+    public void SetSingle(TimeSpan duration)
+    {
+        Set(duration, duration, TimeSpan.FromDays(1));
+    }
+
     partial void OnInitialDurationChanging(TimeSpan value)
     {
         if (value == TimeSpan.Zero)

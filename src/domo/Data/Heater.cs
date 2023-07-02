@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Diagnostics;
 
 namespace domo.Data;
 
@@ -152,12 +153,15 @@ public partial class Heater : ObservableObject
         {
             var duration = OnDuration;
             UpdateDuration(ref duration, CurrentSetting.OnCycleDurations);
+            // TODO put logging on setter instead
+            Debug.WriteLine($"[{DateTime.Now:s.fff}] OnDuration: {OnDuration} -> {duration}");
             OnDuration = duration;
         }
         else
         {
             var duration = HaltDuration;
             UpdateDuration(ref duration, CurrentSetting.HaltCycleDurations);
+            Debug.WriteLine($"[{DateTime.Now:s.fff}] HaltDuration: {HaltDuration} -> {duration}");
             HaltDuration = duration;
         }
     }
