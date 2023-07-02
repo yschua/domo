@@ -1,0 +1,34 @@
+@startuml HeaterStateMachine
+
+state Off
+state Override {
+    state OverrideOn
+    state OverrideHalt
+}
+state Schedule {
+    state ScheduleOn
+    state ScheduleHalt
+    state ScheduleIdle
+}
+
+[*] -> Off
+
+Off ---> OverrideOn : Override
+Off ---> ScheduleIdle : Schedule
+
+Override --> Off : Off
+Override ---> ScheduleIdle : Schedule
+
+OverrideOn -> OverrideHalt : Halt
+OverrideHalt -> OverrideOn : On
+
+Schedule --> Off : Off
+Schedule --> OverrideOn : Override
+
+ScheduleHalt -> ScheduleOn : On
+ScheduleHalt --> ScheduleIdle : Idle
+ScheduleIdle -> ScheduleOn : On
+ScheduleOn -> ScheduleHalt : Halt
+ScheduleOn --> ScheduleIdle : Idle
+
+@enduml
