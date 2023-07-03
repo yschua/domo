@@ -1,5 +1,51 @@
-﻿@code {
+﻿@using System.ComponentModel;
+@implements IDisposable
+@inject Heater Heater
+@inject IDialogService DialogService
 
+@code {
+    protected override void OnInitialized()
+    {
+        Heater.Schedule.PropertyChanged += StateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        Heater.Schedule.PropertyChanged -= StateChangedHandler;
+    }
+
+    void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    HeaterLevel Level { get; set; }
+
+    TimeSpan? StartTime { get; set; } = TimeSpan.FromHours(7);
+
+    TimeSpan? EndTime { get; set; } = TimeSpan.FromHours(9);
+
+    async void CreateEvent()
+    {
+        try
+        {
+            Heater.Schedule.AddEvent(new HeaterScheduleEvent
+            {
+                Level = Level,
+                StartTime = TimeOnly.FromTimeSpan(StartTime.Value),
+                EndTime = TimeOnly.FromTimeSpan(EndTime.Value),
+            });
+        }
+        catch (ArgumentException e)
+        {
+            await DialogService.ShowMessageBox("Error", e.Message);
+        }
+    }
+
+    void RemoveEvent(HeaterScheduleEvent scheduleEvent)
+    {
+        Heater.Schedule.Events.Remove(scheduleEvent);
+    }
 }
 
 <MudCard Outlined="true">
@@ -7,6 +53,44 @@
         <MudGrid Spacing="1">
             <MudItem xs="12">
                 <MudText Typo="Typo.h6">Schedule Editor</MudText>
+            </MudItem>
+
+            <MudItem xs="4">
+                <MudTimePicker Label="Start" AmPm="true" @bind-Time="StartTime" />
+            </MudItem>
+
+            <MudItem xs="4">
+                <MudTimePicker Label="End" AmPm="true" @bind-Time="EndTime" />
+            </MudItem>
+
+            <MudItem xs="3">
+                <MudSelect T="HeaterLevel" Label="Level" @bind-Value="Level">
+                    <MudSelectItem Value="HeaterLevel.Low" />
+                    <MudSelectItem Value="HeaterLevel.High" />
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="1" Class="d-flex justify-end">
+                <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@CreateEvent" />
+            </MudItem>
+
+            <MudDivider Class="my-1" />
+
+            <MudItem xs="12">
+                <MudDataGrid SortMode="@SortMode.None" Dense="true" Breakpoint="@Breakpoint.None"
+                             Items="@Heater.Schedule.Events">
+                    <Columns>
+                        <PropertyColumn Property="x => x.StartTime" Title="Start" />
+                        <PropertyColumn Property="x => x.EndTime" Title="End" />
+                        <PropertyColumn Property="x => x.Level" Title="Level" />
+                        <TemplateColumn CellClass="d-flex justify-end">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               OnClick="@(() => RemoveEvent(context.Item))" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                </MudDataGrid>
             </MudItem>
         </MudGrid>
     </MudCardContent>
