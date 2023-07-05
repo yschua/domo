@@ -29,12 +29,7 @@
     {
         try
         {
-            Heater.Schedule.AddEvent(new HeaterScheduleEvent
-            {
-                Level = Level,
-                StartTime = TimeOnly.FromTimeSpan(StartTime.Value),
-                EndTime = TimeOnly.FromTimeSpan(EndTime.Value),
-            });
+            Heater.Schedule.AddEvent(new(StartTime.Value, EndTime.Value, Level));
         }
         catch (ArgumentException e)
         {

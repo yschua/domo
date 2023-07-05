@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Stateless;
+using System.Data;
 using System.Diagnostics;
 using System.Timers;
 
@@ -34,13 +35,15 @@ public class HeaterStateMachine : IDisposable, IHostedService
 {
     private readonly StateMachine<HeaterState, HeaterTrigger> _machine;
     private readonly Heater _heater;
+    private readonly HeaterStateMachineOptions _options;
     private readonly System.Timers.Timer _timer;
-    private readonly object _lock = new object();
+    private readonly object _lock = new();
 
     public HeaterStateMachine(IOptions<HeaterStateMachineOptions> options, Heater heater)
     {
         _machine = new(HeaterState.Off);
         _heater = heater;
+        _options = options.Value;
 
         _machine.OnTransitioned(OnTransition);
 
@@ -52,14 +55,14 @@ public class HeaterStateMachine : IDisposable, IHostedService
             ;
 
         _machine.Configure(HeaterState.OverrideOn)
-            .OnEntry(t => ActivateHeater(TimerHeaterHalt))
+            .OnEntry(t => ActivateHeater())
             .Permit(HeaterTrigger.Off, HeaterState.Off)
             .Permit(HeaterTrigger.Halt, HeaterState.OverrideHalt)
             .Permit(HeaterTrigger.Schedule, HeaterState.ScheduleIdle)
             ;
 
         _machine.Configure(HeaterState.OverrideHalt)
-            .OnEntry(t => DeactivateHeater(TimerHeaterOn))
+            .OnEntry(t => DeactivateHeater())
             .Permit(HeaterTrigger.Off, HeaterState.Off)
             .Permit(HeaterTrigger.On, HeaterState.OverrideOn)
             .Permit(HeaterTrigger.Schedule, HeaterState.ScheduleIdle)
@@ -67,27 +70,36 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
         _machine.Configure(HeaterState.ScheduleIdle)
             .OnEntry(t => DeactivateHeater())
+            .Ignore(HeaterTrigger.Idle)
             .Permit(HeaterTrigger.Off, HeaterState.Off)
             .Permit(HeaterTrigger.Override, HeaterState.OverrideOn)
+            .Permit(HeaterTrigger.On, HeaterState.ScheduleOn)
+            ;
+
+        _machine.Configure(HeaterState.ScheduleOn)
+            .OnEntry(t => ActivateHeater())
+            .Ignore(HeaterTrigger.On)
+            .Permit(HeaterTrigger.Off, HeaterState.Off)
+            .Permit(HeaterTrigger.Override, HeaterState.OverrideOn)
+            .Permit(HeaterTrigger.Halt, HeaterState.ScheduleHalt)
+            .Permit(HeaterTrigger.Idle, HeaterState.ScheduleIdle)
+            ;
+
+        _machine.Configure(HeaterState.ScheduleHalt)
+            .OnEntry(t => DeactivateHeater())
+            .Permit(HeaterTrigger.Off, HeaterState.Off)
+            .Permit(HeaterTrigger.Override, HeaterState.OverrideOn)
+            .Permit(HeaterTrigger.On, HeaterState.ScheduleOn)
+            .Permit(HeaterTrigger.Idle, HeaterState.ScheduleIdle)
             ;
 
         _heater.HeaterModeChanged += (_, mode) => ChangeHeaterMode(mode);
 
-        //_heater.HeaterModeChanged += (_, mode) =>
-        //{
-        //    if (mode == HeaterMode.Off)
-        //    {
-        //        SetModeOff();
-        //    }
-        //    else if (mode == HeaterMode.Override)
-        //    {
-        //        SetModeOverride();
-        //    }
-        //};
-
-        _timer = new System.Timers.Timer(options.Value.TickInterval);
+        _timer = new System.Timers.Timer(_options.TickInterval);
         _timer.Elapsed += TimerTick;
     }
+
+    public event EventHandler<HeaterState>? StateChanged;
 
     public void Dispose()
     {
@@ -110,6 +122,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
     private void OnTransition(StateMachine<HeaterState, HeaterTrigger>.Transition transition)
     {
+        StateChanged?.Invoke(this, transition.Destination);
         Debug.WriteLine($"[{DateTime.Now:s.fff}] {transition.Trigger}: {transition.Source} -> {transition.Destination}");
     }
 
@@ -117,9 +130,6 @@ public class HeaterStateMachine : IDisposable, IHostedService
     {
         lock (_lock)
         {
-            // user change invalidates current timers?
-
-
             if (mode == HeaterMode.Override)
             {
                 _heater.OverrideStart = DateTime.Now;
@@ -136,17 +146,6 @@ public class HeaterStateMachine : IDisposable, IHostedService
         }
     }
 
-    //private void SetModeOff()
-    //{
-    //    _machine.Fire(HeaterTrigger.Off);
-    //}
-
-    //private void SetModeOverride()
-    //{
-    //    _machine.Fire(HeaterTrigger.Override);
-    //    _heater.OverrideStart = DateTime.Now;
-    //}
-
     private void TimerTick(object? source, ElapsedEventArgs e)
     {
         Debug.WriteLine($"[{DateTime.Now:s.fff}] Tick");
@@ -159,6 +158,27 @@ public class HeaterStateMachine : IDisposable, IHostedService
                 if (DateTime.Now > (_heater.OverrideStart + _heater.OverrideDuration))
                 {
                     _heater.Mode = _heater.PreviousMode;
+                }
+            }
+            
+            if (_heater.Mode == HeaterMode.Schedule)
+            {
+                var now = TimeOnly.FromDateTime(DateTime.Now);
+                var events = _heater.Schedule.Events;
+
+                bool InRange(TimeOnly time) => now >= time && now <= time.Add(_options.TickInterval * 2);
+                var startEvents = events.Where(e => InRange(e.StartTime));
+
+                if (startEvents.Count() > 0)
+                {
+                    _heater.SetCurrentSetting(startEvents.First().Level);
+                    _heater.StartNextCycle(resetCycle: true);
+                    TimerHeaterOn();
+                }
+
+                if (events.All(e => now < e.StartTime || now > e.EndTime))
+                {
+                    TimerHeaterIdle();
                 }
             }
 
@@ -194,50 +214,30 @@ public class HeaterStateMachine : IDisposable, IHostedService
                     _heater.StartNextCycle(resetCycle: false);
                 }
             }
-
-            //if (_nextCycleTrigger != null)
-            //{
-            //    TimeSpan cycleDuration;
-            //    if (_heater.IsHalted)
-            //    {
-            //        cycleDuration = _h
-            //    }
-
-            //}
-
-
-            // when schedule ends
-
-            // when cycle ends
         }
     }
 
-    //public void TimerHeaterOff()
-    //{
-    //    _machine.Fire(HeaterTrigger.Off);
-    //}
-
-    public void TimerHeaterOn()
+    private void TimerHeaterOn()
     {
         _machine.Fire(HeaterTrigger.On);
     }
 
-    public void TimerHeaterHalt()
+    private void TimerHeaterHalt()
     {
         _machine.Fire(HeaterTrigger.Halt);
     }
 
-    public void TimerHeaterIdle()
+    private void TimerHeaterIdle()
     {
         _machine.Fire(HeaterTrigger.Idle);
     }
 
-    private void DeactivateHeater(Action? nextCycleTrigger = null)
+    private void DeactivateHeater()
     {
         _heater.Deactivate();
     }
 
-    private void ActivateHeater(Action? nextCycleTrigger = null)
+    private void ActivateHeater()
     {
         _heater.Activate();
     }

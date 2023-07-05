@@ -29,11 +29,15 @@ public partial class HeaterSchedule : ObservableObject
     }
 }
 
-public class HeaterScheduleEvent
+public record HeaterScheduleEvent(TimeOnly StartTime, TimeOnly EndTime, HeaterLevel Level)
 {
-    public HeaterLevel Level { get; init; }
+    public HeaterScheduleEvent(TimeSpan startTime, TimeSpan endTime, HeaterLevel level)
+        : this(TimeOnly.FromTimeSpan(startTime), TimeOnly.FromTimeSpan(endTime), level)
+    {
+    }
 
-    public TimeOnly StartTime { get; init; }
-
-    public TimeOnly EndTime { get; init; }
+    public HeaterScheduleEvent(DateTime startTime, DateTime endTime, HeaterLevel level)
+        : this(TimeOnly.FromDateTime(startTime), TimeOnly.FromDateTime(endTime), level)
+    {
+    }
 }

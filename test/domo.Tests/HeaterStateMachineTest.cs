@@ -146,8 +146,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
         });
     }
 
-    // TODO extend to test both override and schedule mode cycling?
-
     [Fact]
     public async Task DynamicCycleDuration_OnCycle()
     {
@@ -418,7 +416,147 @@ public class HeaterStateMachineTest : IAsyncLifetime
         await task;
     }
 
-    // test override clears schedule cycle
+    [Fact]
+    public async Task ScheduleCycling()
+    {
+        _heater.Mode = HeaterMode.Schedule;
 
-    // test schedule clears override cycle
+        _heater.LowLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromMilliseconds(400));
+        _heater.LowLevelSetting.HaltCycleDurations.SetSingle(TimeSpan.FromMilliseconds(300));
+
+        _heater.HighLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromMilliseconds(300));
+        _heater.HighLevelSetting.HaltCycleDurations.SetSingle(TimeSpan.FromMilliseconds(400));
+
+        var now = DateTime.Now;
+
+        _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(200),
+            now + TimeSpan.FromMilliseconds(1100),
+            HeaterLevel.Low));
+
+         _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(1300),
+            now + TimeSpan.FromMilliseconds(1800),
+            HeaterLevel.High));
+
+        /*
+         * Cycle    Durati. Elapsed
+         * Idle     -       0ms
+         * On       400ms   200ms   <- Event 1 start
+         * Halt     300ms   600ms
+         * On       400ms   900ms
+         * Idle     -       1100ms  <- Event 1 end
+         * On       300ms   1300ms  <- Event 2 start
+         * Halt     400ms   1600ms  <- Event 2 end
+         * Idle     -       1800ms
+         */
+
+        await AssertStateTimings(new[]
+        {
+            (0, HeaterState.ScheduleIdle),
+            (200, HeaterState.ScheduleOn),
+            (600, HeaterState.ScheduleHalt),
+            (900, HeaterState.ScheduleOn),
+            (1100, HeaterState.ScheduleIdle),
+            (1300, HeaterState.ScheduleOn),
+            (1600, HeaterState.ScheduleHalt),
+            (1800, HeaterState.ScheduleIdle),
+        });
+    }
+
+    [Fact]
+    public async Task ScheduleCycleOnlyStartsAtStartTime()
+    {
+        _heater.Mode = HeaterMode.Schedule;
+        bool stateChanged = false;
+        _machine.StateChanged += (_, state) => stateChanged = true;
+        var now = DateTime.Now;
+        _heater.Schedule.AddEvent(new(
+            now - TimeSpan.FromMilliseconds(100),
+            now + TimeSpan.FromMilliseconds(200),
+            HeaterLevel.Low));
+        await Task.Delay(300);
+        stateChanged.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RemoveScheduleStopsCycle()
+    {
+        _heater.Mode = HeaterMode.Schedule;
+        var now = DateTime.Now;
+        _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(200),
+            now + TimeSpan.FromMilliseconds(700),
+            HeaterLevel.Low));
+
+        _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(800),
+            now + TimeSpan.FromMilliseconds(1100),
+            HeaterLevel.Low));
+
+        var task = Task.Delay(500).ContinueWith(_ => _heater.Schedule.Events.RemoveAt(0));
+
+        /*
+         * Cycle    Durati. Elapsed
+         * Idle     -       0ms
+         * On       200ms   200ms
+         * Halt     200ms   400ms   
+         * Idle     -       500ms   <- Delete event
+         * On
+         */
+
+        await AssertStateTimings(new[]
+        {
+            (0, HeaterState.ScheduleIdle),
+            (200, HeaterState.ScheduleOn),
+            (400, HeaterState.ScheduleHalt),
+            (500, HeaterState.ScheduleIdle),
+        });
+
+        await task;
+    }
+
+    [Fact]
+    public async Task OverrideAndRestoreSchedule()
+    {
+         _heater.Mode = HeaterMode.Schedule;
+        _heater.LowLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromMilliseconds(400));
+
+        var now = DateTime.Now;
+        _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(200),
+            now + TimeSpan.FromMilliseconds(800),
+            HeaterLevel.Low));
+
+        _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(1000),
+            now + TimeSpan.FromMilliseconds(1500),
+            HeaterLevel.Low));
+
+        var task = Task.Delay(500).ContinueWith(_ =>
+        {
+            _heater.Mode = HeaterMode.Override;
+            _heater.OverrideDuration = TimeSpan.FromMilliseconds(300);
+        });
+
+        /*
+         * Cycle    Durati. Elapsed
+         * Idle     -       0ms
+         * On       400ms   200ms
+         * On       400ms   500ms   <- Override start
+         * Idle     -       800ms   <- Override restore
+         * On       400ms   1000ms
+         */
+
+        await AssertStateTimings(new[]
+        {
+            (0, HeaterState.ScheduleIdle),
+            (200, HeaterState.ScheduleOn),
+            (500, HeaterState.OverrideOn),
+            (800, HeaterState.ScheduleIdle),
+            (1000, HeaterState.ScheduleOn),
+        });
+
+        await task;
+    }
 }
