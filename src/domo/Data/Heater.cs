@@ -25,7 +25,7 @@ public partial class Heater : ObservableObject
 
     public DateTime OverrideStart { get; set; }
 
-    public HeaterSetting CurrentSetting { get; private set; }
+    public HeaterLevel CurrentLevel { get; set; }
 
     public DateTime CycleStart { get; private set; }
 
@@ -36,6 +36,12 @@ public partial class Heater : ObservableObject
     public TimeSpan HaltDuration { get; private set; }
 
     public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
+
+    public HeaterSetting CurrentSetting => CurrentLevel switch
+    {
+        HeaterLevel.Low => LowLevelSetting,
+        HeaterLevel.High => HighLevelSetting
+    };
 
     [ObservableProperty]
     private HeaterSchedule _schedule = new();
@@ -102,16 +108,7 @@ public partial class Heater : ObservableObject
 
     partial void OnOverrideLevelChanged(HeaterLevel value)
     {
-        SetCurrentSetting(value);
-    }
-
-    public void SetCurrentSetting(HeaterLevel level)
-    {
-        CurrentSetting = level switch
-        {
-            HeaterLevel.Low => LowLevelSetting,
-            HeaterLevel.High => HighLevelSetting
-        };
+        CurrentLevel = value;
     }
 
     public void StartNextCycle(bool resetCycle)

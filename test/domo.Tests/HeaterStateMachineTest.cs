@@ -429,25 +429,25 @@ public class HeaterStateMachineTest : IAsyncLifetime
 
         var now = DateTime.Now;
 
-        _heater.Schedule.AddEvent(new(
-            now + TimeSpan.FromMilliseconds(200),
-            now + TimeSpan.FromMilliseconds(1100),
-            HeaterLevel.Low));
-
          _heater.Schedule.AddEvent(new(
             now + TimeSpan.FromMilliseconds(1300),
             now + TimeSpan.FromMilliseconds(1800),
             HeaterLevel.High));
 
+        _heater.Schedule.AddEvent(new(
+            now + TimeSpan.FromMilliseconds(200),
+            now + TimeSpan.FromMilliseconds(1100),
+            HeaterLevel.Low));
+
         /*
          * Cycle    Durati. Elapsed
          * Idle     -       0ms
-         * On       400ms   200ms   <- Event 1 start
+         * On       400ms   200ms   <- Event 2 start
          * Halt     300ms   600ms
          * On       400ms   900ms
-         * Idle     -       1100ms  <- Event 1 end
-         * On       300ms   1300ms  <- Event 2 start
-         * Halt     400ms   1600ms  <- Event 2 end
+         * Idle     -       1100ms  <- Event 2 end
+         * On       300ms   1300ms  <- Event 1 start
+         * Halt     400ms   1600ms  <- Event 1 end
          * Idle     -       1800ms
          */
 

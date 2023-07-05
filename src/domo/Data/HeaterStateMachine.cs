@@ -133,7 +133,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
             if (mode == HeaterMode.Override)
             {
                 _heater.OverrideStart = DateTime.Now;
-                _heater.SetCurrentSetting(_heater.OverrideLevel);
+                _heater.CurrentLevel = _heater.OverrideLevel;
                 _heater.StartNextCycle(resetCycle: true);
             }
 
@@ -171,7 +171,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
                 if (startEvents.Count() > 0)
                 {
-                    _heater.SetCurrentSetting(startEvents.First().Level);
+                    _heater.CurrentLevel = startEvents.First().Level;
                     _heater.StartNextCycle(resetCycle: true);
                     TimerHeaterOn();
                 }
