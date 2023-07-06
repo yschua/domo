@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Diagnostics;
 
 namespace domo.Data;
 
@@ -19,13 +18,15 @@ public enum HeaterLevel
 
 public partial class Heater : ObservableObject
 {
-    public event EventHandler<HeaterMode> HeaterModeChanged;
+    public event EventHandler<HeaterMode>? HeaterModeChanged;
 
     public int Id { get; set; }
 
     public DateTime OverrideStart { get; set; }
 
     public HeaterLevel CurrentLevel { get; set; }
+
+    public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
 
     public DateTime CycleStart { get; private set; }
 
@@ -34,8 +35,6 @@ public partial class Heater : ObservableObject
     public TimeSpan OnDuration { get; private set; }
 
     public TimeSpan HaltDuration { get; private set; }
-
-    public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
 
     public HeaterSetting CurrentSetting => CurrentLevel switch
     {
@@ -71,7 +70,6 @@ public partial class Heater : ObservableObject
     {
         Mode = HeaterMode.Off;
         IsActivated = false;
-        //Deactivate();
     }
 
     public void Activate()
@@ -146,15 +144,11 @@ public partial class Heater : ObservableObject
         {
             var duration = OnDuration;
             UpdateDuration(ref duration, CurrentSetting.OnCycleDurations);
-            // TODO put logging on setter instead
-            Debug.WriteLine($"[{DateTime.Now:s.fff}] OnDuration: {OnDuration} -> {duration}");
             OnDuration = duration;
         }
         else
         {
             var duration = HaltDuration;
-            UpdateDuration(ref duration, CurrentSetting.HaltCycleDurations);
-            Debug.WriteLine($"[{DateTime.Now:s.fff}] HaltDuration: {HaltDuration} -> {duration}");
             HaltDuration = duration;
         }
     }

@@ -1,17 +1,19 @@
+using Divergic.Logging.Xunit;
 using domo.Data;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace domo.Tests;
 
-public class HeaterStateMachineTest : IAsyncLifetime
+public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsyncLifetime
 {
     private readonly Heater _heater;
     private readonly HeaterStateMachine _machine;
 
-    public HeaterStateMachineTest()
+    public HeaterStateMachineTest(ITestOutputHelper output) : base(output, TestLoggingConfig.Current)
     {
         _heater = new HeaterFactory().Create(TimeSpan.FromMilliseconds(200));
         _heater.OverrideDuration = TimeSpan.FromMilliseconds(5000);
@@ -19,7 +21,7 @@ public class HeaterStateMachineTest : IAsyncLifetime
         {
             TickInterval = TimeSpan.FromMilliseconds(10)
         });
-        _machine = new HeaterStateMachine(options, _heater);
+        _machine = new HeaterStateMachine(options, _heater, Logger);
     }
 
     public async Task InitializeAsync()
@@ -36,7 +38,7 @@ public class HeaterStateMachineTest : IAsyncLifetime
 
     private void AssertState(HeaterState expectedState, string because = "")
     {
-        Debug.WriteLine($"[{DateTime.Now:s.fff}] Assert {expectedState}");
+        Logger.LogDebug($"Assert {expectedState}");
         _machine.CurrentState.Should().Be(expectedState, because);
     }
 

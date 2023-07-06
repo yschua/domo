@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Stateless;
 using System.Data;
-using System.Diagnostics;
 using System.Timers;
 
 namespace domo.Data;
@@ -36,14 +35,17 @@ public class HeaterStateMachine : IDisposable, IHostedService
     private readonly StateMachine<HeaterState, HeaterTrigger> _machine;
     private readonly Heater _heater;
     private readonly HeaterStateMachineOptions _options;
+    private readonly ILogger _logger;
     private readonly System.Timers.Timer _timer;
     private readonly object _lock = new();
 
-    public HeaterStateMachine(IOptions<HeaterStateMachineOptions> options, Heater heater)
+    public HeaterStateMachine(IOptions<HeaterStateMachineOptions> options,
+        Heater heater, ILogger<HeaterStateMachine> logger)
     {
         _machine = new(HeaterState.Off);
         _heater = heater;
         _options = options.Value;
+        _logger = logger;
 
         _machine.OnTransitioned(OnTransition);
 
@@ -123,7 +125,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
     private void OnTransition(StateMachine<HeaterState, HeaterTrigger>.Transition transition)
     {
         StateChanged?.Invoke(this, transition.Destination);
-        Debug.WriteLine($"[{DateTime.Now:s.fff}] {transition.Trigger}: {transition.Source} -> {transition.Destination}");
+        _logger.LogInformation($"Trigger - {transition.Trigger}: {transition.Source} -> {transition.Destination}");
     }
 
     private void ChangeHeaterMode(HeaterMode mode)
@@ -148,8 +150,6 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
     private void TimerTick(object? source, ElapsedEventArgs e)
     {
-        Debug.WriteLine($"[{DateTime.Now:s.fff}] Tick");
-
         lock (_lock)
         {
             if (_heater.Mode == HeaterMode.Override)
