@@ -149,6 +149,7 @@ public partial class Heater : ObservableObject
         else
         {
             var duration = HaltDuration;
+            UpdateDuration(ref duration, CurrentSetting.HaltCycleDurations);
             HaltDuration = duration;
         }
     }
