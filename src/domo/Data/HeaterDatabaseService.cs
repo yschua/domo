@@ -17,7 +17,7 @@ public class HeaterDatabaseService
             throw new InvalidOperationException("Database corrupted");
         }
 
-        Heater = Heaters.FindAll().FirstOrDefault();
+        Heater = Heaters.FindOne(x => x.Id == 1);
         Heater.Reset();
         Heater.SetUpPropertyChangedHandler();
         Heater.RegisterUpdateHandler(() => Heaters.Update(Heater));

@@ -489,11 +489,6 @@ public class HeaterStateMachineTest : IAsyncLifetime
             now + TimeSpan.FromMilliseconds(700),
             HeaterLevel.Low));
 
-        _heater.Schedule.AddEvent(new(
-            now + TimeSpan.FromMilliseconds(800),
-            now + TimeSpan.FromMilliseconds(1100),
-            HeaterLevel.Low));
-
         var task = Task.Delay(500).ContinueWith(_ => _heater.Schedule.Events.RemoveAt(0));
 
         /*
