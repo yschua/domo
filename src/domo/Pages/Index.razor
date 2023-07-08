@@ -2,6 +2,7 @@
 @using System.ComponentModel;
 @implements IDisposable
 @inject Heater Heater
+@inject ILogger<Index> Logger
 
 @code {
     // TODO move property change triggers to a base class
@@ -25,7 +26,17 @@
     int SelectedHeaterModeIndex
     {
         get => HeaterModes.IndexOf(Heater.Mode);
-        set => Heater.Mode = HeaterModes[value];
+        set
+        {
+            if (value < 0 || value >= HeaterModes.Count)
+            {
+                Logger.LogWarning($"{nameof(SelectedHeaterModeIndex)} out of range: {value}");
+            }
+            else
+            {
+                Heater.Mode = HeaterModes[value];
+            }
+        }
     }
 }
 

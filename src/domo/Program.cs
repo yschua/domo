@@ -3,31 +3,45 @@ using LiteDB;
 using MudBlazor.Services;
 using Serilog;
 
-var appDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "domo");
-Directory.CreateDirectory(appDir);
+var AppDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "domo");
+Directory.CreateDirectory(AppDir);
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.File(Path.Combine(appDir, "logs", ".log"), rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+LoggerConfiguration CreateDefaultLoggerConfiguration()
+{
+    return new LoggerConfiguration()
+        .WriteTo.File(
+            path: Path.Combine(AppDir, "logs", ".log"),
+            rollingInterval: RollingInterval.Day,
+            shared: true);
+}
 
 try
 {
+    Log.Logger = CreateDefaultLoggerConfiguration().CreateLogger();
+
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddRazorPages();
     builder.Services.AddServerSideBlazor();
     builder.Services.AddMudServices();
 
+    builder.Services.AddSingleton<LogViewer>();
     builder.Services.AddSingleton<HeaterDatabaseService>();
     builder.Services.AddOptions<HeaterStateMachineOptions>();
     builder.Services.AddHostedService<HeaterStateMachine>();
     builder.Services.AddSingleton<HeaterFactory>();
     builder.Services.AddSingleton<Heater>(p => p.GetRequiredService<HeaterDatabaseService>().Heater);
-    builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(appDir, "domo.db")));
+    builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(AppDir, "domo.db")));
 
+    builder.Services.AddSingleton<Serilog.ILogger>(p =>
+        CreateDefaultLoggerConfiguration()
+            .WriteTo.LogViewerSink(p.GetRequiredService<LogViewer>())
+            .CreateLogger());
     builder.Host.UseSerilog();
 
     var app = builder.Build();
+
+    Log.Logger = app.Services.GetRequiredService<Serilog.ILogger>();
 
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())

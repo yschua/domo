@@ -1,0 +1,39 @@
+﻿@page "/debug"
+@implements IDisposable
+@inject LogViewer LogViewer
+
+@code {
+    protected override void OnInitialized()
+    {
+        LogViewer.Published += StateChangedHandler;
+    }
+
+    public void Dispose()
+    {
+        LogViewer.Published -= StateChangedHandler;
+    }
+
+    void StateChangedHandler(object? sender, EventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+}
+
+<MudGrid>
+    <MudItem xs="12">
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudCard Outlined="true">
+            <MudCardContent >
+                <div class="log">
+                    @foreach (var entry in LogViewer.Entries)
+                    {
+                        @entry
+                        <br />
+                    }
+                </div>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
