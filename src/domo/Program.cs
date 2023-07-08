@@ -6,11 +6,14 @@ using Serilog;
 var AppDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "domo");
 Directory.CreateDirectory(AppDir);
 
+const string LogOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+
 LoggerConfiguration CreateDefaultLoggerConfiguration()
 {
     return new LoggerConfiguration()
         .WriteTo.File(
             path: Path.Combine(AppDir, "logs", ".log"),
+            outputTemplate: LogOutputTemplate,
             rollingInterval: RollingInterval.Day,
             shared: true);
 }
@@ -35,7 +38,7 @@ try
 
     builder.Services.AddSingleton<Serilog.ILogger>(p =>
         CreateDefaultLoggerConfiguration()
-            .WriteTo.LogViewerSink(p.GetRequiredService<LogViewer>())
+            .WriteTo.LogViewerSink(p.GetRequiredService<LogViewer>(), LogOutputTemplate)
             .CreateLogger());
     builder.Host.UseSerilog();
 
