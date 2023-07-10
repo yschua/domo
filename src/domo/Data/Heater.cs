@@ -72,16 +72,6 @@ public partial class Heater : ObservableObject
         IsActivated = false;
     }
 
-    public void Activate()
-    {
-        IsActivated = true;
-    }
-
-    public void Deactivate()
-    {
-        IsActivated = false;
-    }
-
     public void SetUpPropertyChangedHandler()
     {
         LowLevelSetting.SetUpPropertyChangedHandler();

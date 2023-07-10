@@ -3,6 +3,7 @@ using domo.Data;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,8 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
         {
             TickInterval = TimeSpan.FromMilliseconds(10)
         });
-        _machine = new HeaterStateMachine(options, _heater, Logger);
+        var heaterControlMock = new Mock<IHeaterControl>();
+        _machine = new HeaterStateMachine(options, Logger, _heater, heaterControlMock.Object);
     }
 
     public async Task InitializeAsync()

@@ -32,6 +32,8 @@ try
     builder.Services.AddSingleton<HeaterDatabaseService>();
     builder.Services.AddOptions<HeaterStateMachineOptions>();
     builder.Services.AddHostedService<HeaterStateMachine>();
+    builder.Services.AddHostedService<HeaterControl>();
+    builder.Services.AddSingleton<IHeaterControl>(p => p.GetRequiredService<HeaterControl>());
     builder.Services.AddSingleton<HeaterFactory>();
     builder.Services.AddSingleton<Heater>(p => p.GetRequiredService<HeaterDatabaseService>().Heater);
     builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(AppDir, "domo.db")));

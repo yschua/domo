@@ -36,16 +36,18 @@ public class HeaterStateMachine : IDisposable, IHostedService
     private readonly Heater _heater;
     private readonly HeaterStateMachineOptions _options;
     private readonly ILogger _logger;
+    private readonly IHeaterControl _heaterControl;
     private readonly System.Timers.Timer _timer;
     private readonly object _lock = new();
 
     public HeaterStateMachine(IOptions<HeaterStateMachineOptions> options,
-        Heater heater, ILogger<HeaterStateMachine> logger)
+        ILogger<HeaterStateMachine> logger, Heater heater, IHeaterControl heaterControl)
     {
         _machine = new(HeaterState.Off);
         _heater = heater;
         _options = options.Value;
         _logger = logger;
+        _heaterControl = heaterControl;
 
         _machine.OnTransitioned(OnTransition);
 
@@ -234,11 +236,11 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
     private void DeactivateHeater()
     {
-        _heater.Deactivate();
+        _heaterControl.TurnOff();
     }
 
     private void ActivateHeater()
     {
-        _heater.Activate();
+        _heaterControl.TurnOn();
     }
 }
