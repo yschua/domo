@@ -46,7 +46,7 @@ public partial class Heater : ObservableObject
     private HeaterSchedule _schedule = new();
 
     [ObservableProperty]
-    public bool _isActivated;
+    public bool _activated;
 
     [ObservableProperty]
     private HeaterMode _mode;
@@ -69,7 +69,7 @@ public partial class Heater : ObservableObject
     public void Reset()
     {
         Mode = HeaterMode.Off;
-        IsActivated = false;
+        Activated = false;
     }
 
     public void SetUpPropertyChangedHandler()
@@ -130,7 +130,7 @@ public partial class Heater : ObservableObject
             }
         }
 
-        if (IsActivated)
+        if (Activated)
         {
             var duration = OnDuration;
             UpdateDuration(ref duration, CurrentSetting.OnCycleDurations);
