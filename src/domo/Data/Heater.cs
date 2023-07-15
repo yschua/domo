@@ -28,14 +28,6 @@ public partial class Heater : ObservableObject
 
     public HeaterMode PreviousMode { get; set; } = HeaterMode.Off;
 
-    public DateTime CycleStart { get; private set; }
-
-    public int CycleNumber { get; private set; }
-
-    public TimeSpan OnDuration { get; private set; }
-
-    public TimeSpan HaltDuration { get; private set; }
-
     public HeaterSetting CurrentSetting => CurrentLevel switch
     {
         HeaterLevel.Low => LowLevelSetting,
@@ -97,50 +89,5 @@ public partial class Heater : ObservableObject
     partial void OnOverrideLevelChanged(HeaterLevel value)
     {
         CurrentLevel = value;
-    }
-
-    public void StartNextCycle(bool resetCycle)
-    {
-        CycleStart = DateTime.Now;
-
-        if (resetCycle)
-        {
-            CycleNumber = 0;
-            OnDuration = CurrentSetting.OnCycleDurations.InitialDuration;
-            return;
-        }
-
-        CycleNumber++;
-
-        if (CycleNumber == 1)
-        {
-            HaltDuration = CurrentSetting.HaltCycleDurations.InitialDuration;
-            return;
-        }
-
-        void UpdateDuration(ref TimeSpan duration, HeaterDurations durationSetting)
-        {
-            if (duration < durationSetting.FinalDuration)
-            {
-                duration = Helper.Min(durationSetting.FinalDuration, duration + durationSetting.DurationChange);
-            }
-            else if (duration > durationSetting.FinalDuration)
-            {
-                duration = Helper.Max(durationSetting.FinalDuration, duration - durationSetting.DurationChange);
-            }
-        }
-
-        if (Activated)
-        {
-            var duration = OnDuration;
-            UpdateDuration(ref duration, CurrentSetting.OnCycleDurations);
-            OnDuration = duration;
-        }
-        else
-        {
-            var duration = HaltDuration;
-            UpdateDuration(ref duration, CurrentSetting.HaltCycleDurations);
-            HaltDuration = duration;
-        }
     }
 }

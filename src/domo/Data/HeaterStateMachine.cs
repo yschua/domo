@@ -39,6 +39,10 @@ public class HeaterStateMachine : IDisposable, IHostedService
     private readonly IHeaterControl _heaterControl;
     private readonly System.Timers.Timer _timer;
     private readonly object _lock = new();
+    private DateTime _cycleStart;
+    private int _cycleNumber;
+    private TimeSpan _onDuration;
+    private TimeSpan _haltDuration;
 
     public HeaterStateMachine(IOptions<HeaterStateMachineOptions> options,
         ILogger<HeaterStateMachine> logger, Heater heater, IHeaterControl heaterControl)
@@ -138,7 +142,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
             {
                 _heater.OverrideStart = DateTime.Now;
                 _heater.CurrentLevel = _heater.OverrideLevel;
-                _heater.StartNextCycle(resetCycle: true);
+                UpdateCycleDuration(resetCycle: true, isOnCycle: true);
             }
 
             _machine.Fire(mode switch
@@ -174,7 +178,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
                 if (startEvents.Count() > 0)
                 {
                     _heater.CurrentLevel = startEvents.First().Level;
-                    _heater.StartNextCycle(resetCycle: true);
+                    UpdateCycleDuration(resetCycle: true, isOnCycle: true);
                     TimerHeaterOn();
                 }
 
@@ -184,39 +188,76 @@ public class HeaterStateMachine : IDisposable, IHostedService
                 }
             }
 
-            TimeSpan? cycleDuration = CurrentState switch
+            if (CurrentState == HeaterState.OverrideHalt || CurrentState == HeaterState.ScheduleHalt)
             {
-                HeaterState.OverrideHalt => _heater.HaltDuration,
-                HeaterState.ScheduleHalt => _heater.HaltDuration,
-                HeaterState.OverrideOn => _heater.OnDuration,
-                HeaterState.ScheduleOn => _heater.OnDuration,
-                _ => null
-            };
-
-            if (cycleDuration != null)
-            {
-                // when cycle ends
-                if (DateTime.Now > (_heater.CycleStart + cycleDuration))
+                if (DateTime.Now > (_cycleStart + _haltDuration))
                 {
-                    switch (CurrentState)
-                    {
-                        case HeaterState.OverrideHalt:
-                        case HeaterState.ScheduleHalt:
-                            TimerHeaterOn();
-                            break;
-                        case HeaterState.OverrideOn:
-                        case HeaterState.ScheduleOn:
-                            TimerHeaterHalt();
-                            break;
-                        default:
-                            throw new InvalidOperationException(
-                                $"Cycle duration end in invalid state: {CurrentState}");
-                    }
-
-                    _heater.StartNextCycle(resetCycle: false);
+                    TimerHeaterOn();
+                    UpdateCycleDuration(resetCycle: false, isOnCycle: true);
+                }
+            }
+            else if (CurrentState == HeaterState.OverrideOn || CurrentState == HeaterState.ScheduleOn)
+            {
+                if (DateTime.Now > (_cycleStart + _onDuration))
+                {
+                    TimerHeaterHalt();
+                    UpdateCycleDuration(resetCycle: false, isOnCycle: false);
                 }
             }
         }
+    }
+
+    private void UpdateCycleDuration(bool resetCycle, bool isOnCycle)
+    {
+        _cycleStart = DateTime.Now;
+
+        if (resetCycle)
+        {
+            _cycleNumber = 0;
+        }
+
+        if (_cycleNumber < 2)
+        {
+            if (isOnCycle)
+            {
+                _onDuration = _heater.CurrentSetting.OnCycleDurations.InitialDuration;
+            }
+            else
+            {
+                _haltDuration = _heater.CurrentSetting.HaltCycleDurations.InitialDuration;
+            }
+        }
+        else
+        {
+            void UpdateDuration(ref TimeSpan duration, HeaterDurations durationSetting)
+            {
+                if (duration < durationSetting.FinalDuration)
+                {
+                    duration = Helper.Min(durationSetting.FinalDuration, duration + durationSetting.DurationChange);
+                }
+                else if (duration > durationSetting.FinalDuration)
+                {
+                    duration = Helper.Max(durationSetting.FinalDuration, duration - durationSetting.DurationChange);
+                }
+            }
+
+            if (isOnCycle)
+            {
+                var duration = _onDuration;
+                UpdateDuration(ref duration, _heater.CurrentSetting.OnCycleDurations);
+                System.Diagnostics.Debug.WriteLine($"OnDuration {_onDuration} -> {duration}");
+                _onDuration = duration;
+            }
+            else
+            {
+                var duration = _haltDuration;
+                UpdateDuration(ref duration, _heater.CurrentSetting.HaltCycleDurations);
+                System.Diagnostics.Debug.WriteLine($"HaltDuration {_haltDuration} -> {duration}");
+                _haltDuration = duration;
+            }
+        }
+
+        _cycleNumber++;
     }
 
     private void TimerHeaterOn()
