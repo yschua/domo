@@ -16,7 +16,7 @@ public class LogFormatter : ILogFormatter
     {
         var builder = new StringBuilder();
 
-        builder.Append($"[{DateTime.Now:s.fff}] ");
+        builder.Append($"[{DateTime.Now:s.fff}] [{Thread.CurrentThread.ManagedThreadId}] ");
 
         if (!string.IsNullOrEmpty(message))
         {

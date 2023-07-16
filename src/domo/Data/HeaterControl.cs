@@ -13,9 +13,10 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
     private readonly Heater _heater;
     private readonly System.Timers.Timer _timer;
     private bool _toggleRequested;
-    private State _actualState;
-    private State _targetState;
-    private State _pendingState;
+    private State _actualState = State.Off;
+    private State _targetState = State.Off;
+    private State _pendingState = State.Off;
+    private DateTime _lastCommandTime;
 
     public HeaterControl(ILogger<HeaterControl> logger,
         ISerialPort serialPort, Heater heater)
@@ -50,13 +51,14 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
                     };
                 }
 
-                if (_targetState != _pendingState)
+                if (_targetState != _pendingState && DateTime.Now > _lastCommandTime + SettleDuration)
                 {
                     _serialPort.Write((byte)Request.Toggle);
                     _pendingState = _targetState;
                     if (_serialPort.Read() != (byte)Response.NoChange)
                     {
-                        throw new InvalidOperationException("");
+                        throw new InvalidOperationException(
+                            "Unxpected response immediately after toggle request");
                     }
                 }
             }
@@ -78,7 +80,9 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
         _serialPort.Dispose();
     }
 
-    public TimeSpan QueryInterval { get; init; } = TimeSpan.FromMilliseconds(100);
+    public TimeSpan QueryInterval { get; init; } = TimeSpan.FromSeconds(1);
+
+    public TimeSpan SettleDuration { get; init; } = TimeSpan.FromSeconds(20);
 
     public void TurnOn()
     {
@@ -86,6 +90,7 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
         {
             _logger.LogDebug($"{nameof(TurnOn)}");
             _targetState = State.On;
+            _lastCommandTime = DateTime.Now;
         }
     }
 
@@ -95,6 +100,7 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
         {
             _logger.LogDebug($"{nameof(TurnOff)}");
             _targetState = State.Off;
+            _lastCommandTime = DateTime.Now;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Divergic.Logging.Xunit;
 using domo.Data;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,13 +17,21 @@ public class HeaterControlTest : LoggingTestsBase<HeaterControl>, IAsyncLifetime
     public HeaterControlTest(ITestOutputHelper output) : base(output, TestLoggingConfig.Current)
     {
         _heater = new HeaterFactory().Create();
-        _gateway = new(Logger) { ConfirmInterval = TimeSpan.FromMilliseconds(100) };
-        _heaterControl = new(Logger, _gateway, _heater) { QueryInterval = TimeSpan.FromMilliseconds(25) };
+        _gateway = new(Logger)
+        { 
+            ConfirmInterval = TimeSpan.Zero
+        };
+        _heaterControl = new(Logger, _gateway, _heater)
+        {
+            QueryInterval = TimeSpan.FromMilliseconds(40),
+            SettleDuration = TimeSpan.FromMilliseconds(200),
+        };
 
         _heater.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(Heater.Activated))
             {
+                Logger.LogDebug($"Heater activated: {_heater.Activated}");
                 _activatedCount++;
             }
         };
@@ -42,19 +51,51 @@ public class HeaterControlTest : LoggingTestsBase<HeaterControl>, IAsyncLifetime
         await _heaterControl.StartAsync(default);
     }
 
+    private void AssertActivated(bool activated, int expectedToggleCount)
+    {
+        Logger.LogDebug($"Assert Activated: {activated}");
+        _heater.Activated.Should().Be(activated);
+        _activatedCount.Should().Be(expectedToggleCount);
+        _activatedCount = 0;
+    }
+
     [Fact]
     public async Task TurnOnOff()
     {
         _heaterControl.TurnOn();
-        _heater.Activated.Should().BeFalse();
-        await Task.Delay(200);
-        _heater.Activated.Should().BeTrue();
-        _activatedCount.Should().Be(1);
+        AssertActivated(false, 0);
+        await Task.Delay(300);
+        AssertActivated(true, 1);
         _heaterControl.TurnOff();
-        _heater.Activated.Should().BeTrue();
-        await Task.Delay(200);
-        _heater.Activated.Should().BeFalse();
-        _activatedCount.Should().Be(2);
+        AssertActivated(true, 0);
+        await Task.Delay(300);
+        AssertActivated(false, 1);
+    }
+
+    [Fact]
+    public async Task ActivateOnlyAfterSettling()
+    {
+        _heaterControl.TurnOn();
+        await Task.Delay(100);
+        _heaterControl.TurnOff();
+        await Task.Delay(100);
+        _heaterControl.TurnOn();
+        await Task.Delay(300);
+        AssertActivated(true, 1);
+    }
+
+    [Fact]
+    public async Task NoActivateWhenNoChange()
+    {
+        _heaterControl.TurnOn();
+        await Task.Delay(100);
+        _heaterControl.TurnOff();
+        await Task.Delay(100);
+        _heaterControl.TurnOn();
+        await Task.Delay(100);
+        _heaterControl.TurnOff();
+        await Task.Delay(300);
+        AssertActivated(false, 0);
     }
 
     //  (actual = 0, target = 0)

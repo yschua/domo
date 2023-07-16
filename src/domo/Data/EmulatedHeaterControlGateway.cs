@@ -4,10 +4,10 @@ public class EmulatedHeaterControlGateway : ISerialPort, IHostedService
 {
     private ILogger _logger;
     private readonly System.Timers.Timer _timer;
-    private readonly AutoResetEvent _readEvent = new(false);
-    private readonly AutoResetEvent _writeEvent = new(true);
-    private byte _writeData;
-    private byte _readData;
+    private readonly AutoResetEvent _dataReadyToSendEvent = new(false);
+    private readonly AutoResetEvent _dataReceivedEvent = new(false);
+    private byte _dataReceived;
+    private byte _dataToSend;
     private bool _toggleRequested;
     private bool _toggleConfirmed;
     private DateTime _lastConfirmTime;
@@ -46,50 +46,58 @@ public class EmulatedHeaterControlGateway : ISerialPort, IHostedService
 
     public byte Read()
     {
-        _readEvent.WaitOne();
-        _logger.LogDebug($"Read: {_readData}");
-        return _readData;
+        _dataReadyToSendEvent.WaitOne();
+        _logger.LogDebug($"Gateway sent: {_dataToSend}");
+        return _dataToSend;
     }
 
     public void Write(byte data)
     {
-        _writeData = data;
-        _logger.LogDebug($"Write: {_writeData}");
-        _writeEvent.Set();
+        _dataReceived = data;
+        _logger.LogDebug($"Gateway received: {_dataReceived}");
+        _dataReceivedEvent.Set();
     }
 
-    public TimeSpan ConfirmInterval { get; init; } = TimeSpan.FromMilliseconds(100);
+    public TimeSpan ConfirmInterval { get; init; } = TimeSpan.FromSeconds(60);
 
     // emulates HeaterControlGateway.ino loop()
     private void GatewayLoop(object? sender, System.Timers.ElapsedEventArgs e)
     {
-        if (_writeEvent.WaitOne(1))
+        lock (_timer)
         {
-            if (_writeData == (byte)HeaterControl.Request.Toggle)
+            var dataAvailable = _dataReceivedEvent.WaitOne(1);
+            _logger.LogDebug($"Gateway tick, dataAvailable: {dataAvailable}");
+
+            if (dataAvailable)
             {
-                _toggleRequested = !_toggleRequested;
+                if (_dataReceived == (byte)HeaterControl.Request.Toggle)
+                {
+                    _logger.LogDebug("Gateway toggle requested");
+                    _toggleRequested = !_toggleRequested;
+                }
+
+                if (_toggleConfirmed)
+                {
+                    _dataToSend = (byte)HeaterControl.Response.ToggleConfirm;
+                    _toggleConfirmed = false;
+                }
+                else
+                {
+                    _dataToSend = (byte)HeaterControl.Response.NoChange;
+                }
+
+                _dataReadyToSendEvent.Set();
             }
 
-            if (_toggleConfirmed)
+            if (DateTime.Now > _lastConfirmTime + ConfirmInterval)
             {
-                _readData = (byte)HeaterControl.Response.ToggleConfirm;
-                _toggleConfirmed = false;
-            }
-            else
-            {
-                _readData = (byte)HeaterControl.Response.NoChange;
-            }
-
-            _readEvent.Set();
-        }
-
-        if (DateTime.Now > _lastConfirmTime + ConfirmInterval)
-        {
-            if (_toggleRequested)
-            {
-                _toggleConfirmed = true;
-                _toggleRequested = false;
-                _lastConfirmTime = DateTime.Now;
+                if (_toggleRequested)
+                {
+                    _logger.LogDebug("Gateway toggle confirmed");
+                    _toggleConfirmed = true;
+                    _toggleRequested = false;
+                    _lastConfirmTime = DateTime.Now;
+                }
             }
         }
     }
