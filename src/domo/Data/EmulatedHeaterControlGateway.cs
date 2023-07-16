@@ -12,7 +12,7 @@ public class EmulatedHeaterControlGateway : ISerialPort, IHostedService
     private bool _toggleConfirmed;
     private DateTime _lastConfirmTime;
 
-    public EmulatedHeaterControlGateway(ILogger logger)
+    public EmulatedHeaterControlGateway(ILogger<EmulatedHeaterControlGateway> logger)
     {
         _logger = logger;
         _timer = new System.Timers.Timer(TimeSpan.FromMilliseconds(10));
@@ -72,7 +72,7 @@ public class EmulatedHeaterControlGateway : ISerialPort, IHostedService
             {
                 if (_dataReceived == (byte)HeaterControl.Request.Toggle)
                 {
-                    _logger.LogDebug("Gateway toggle requested");
+                    _logger.LogInformation("Gateway toggle requested");
                     _toggleRequested = !_toggleRequested;
                 }
 
@@ -93,11 +93,12 @@ public class EmulatedHeaterControlGateway : ISerialPort, IHostedService
             {
                 if (_toggleRequested)
                 {
-                    _logger.LogDebug("Gateway toggle confirmed");
+                    _logger.LogInformation("Gateway toggle confirmed");
                     _toggleConfirmed = true;
                     _toggleRequested = false;
-                    _lastConfirmTime = DateTime.Now;
                 }
+
+                _lastConfirmTime = DateTime.Now;
             }
         }
     }

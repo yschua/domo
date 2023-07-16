@@ -17,7 +17,7 @@ public class HeaterControlTest : LoggingTestsBase<HeaterControl>, IAsyncLifetime
     public HeaterControlTest(ITestOutputHelper output) : base(output, TestLoggingConfig.Current)
     {
         _heater = new HeaterFactory().Create();
-        _gateway = new(Logger)
+        _gateway = new(output.BuildLoggerFor<EmulatedHeaterControlGateway>())
         { 
             ConfirmInterval = TimeSpan.Zero
         };
@@ -97,60 +97,4 @@ public class HeaterControlTest : LoggingTestsBase<HeaterControl>, IAsyncLifetime
         await Task.Delay(300);
         AssertActivated(false, 0);
     }
-
-    //  (actual = 0, target = 0)
-    // turn on case
-    // send toggle request - intention to toggle
-    //  (actual = 0, target = 1)
-    // respond no change confirm
-    //  (actual = 0, target = 1)
-    // radio toggle
-    // send status request
-    //  (actual = 0, target = 1)
-    // respond toggle confirm
-    //  (actual = 1, target = 1)
-    // send status request
-    // respond no change confirm
-
-    //  (actual = 1, target = 1)
-    // turn off case
-    // send toggle request - intention to toggle
-    //  (actual = 1, target = 0)
-    // respond no change confirm
-    //  (actual = 1, target = 0)
-    // radio toggle
-    // send status request
-    //  (actual = 1, target = 0)
-    // respond toggle confirm
-    //  (actual = 0, target = 0)
-    // send status request
-    // respond no change confirm
-
-    // idle case
-    // send status request
-    // respond no change confirm
-
-    //  (actual = 0, target = 0)
-    // edge case 1
-    // send toggle request - intention to toggle
-    //  (actual = 0, target = 1)
-    // respond no change confirm
-    //  (actual = 0, target = 1)
-    // radio toggle
-    // send toggle request - intention to cancel
-    //  (actual = 0, target = 0)
-    // respond toggle confirm
-    //  (actual = 1, target = 0)
-
-    //  (actual = 1, target = 1)
-    // edge case 2
-    // send toggle request - intention to cancel
-    //  (actual = 1, target = 0)
-    // respond no change confirm
-    //  (actual = 1, target = 0)
-    // radio toggle
-    // send toggle request - intention to toggle
-    //  (actual = 1, target = 1)
-    // respond toggle confirm
-    //  (actual = 0, target = 1)
 }

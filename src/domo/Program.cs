@@ -11,11 +11,20 @@ const string LogOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Leve
 LoggerConfiguration CreateDefaultLoggerConfiguration()
 {
     return new LoggerConfiguration()
+        .MinimumLevel.Information()
         .WriteTo.File(
             path: Path.Combine(AppDir, "logs", ".log"),
             outputTemplate: LogOutputTemplate,
             rollingInterval: RollingInterval.Day,
             shared: true);
+}
+
+void AddHostedApiService<TInterface, TService>(IServiceCollection services)
+    where TInterface : class
+    where TService : class, IHostedService, TInterface
+{
+    services.AddSingleton<TInterface, TService>();
+    services.AddSingleton<IHostedService>(p => (TService)p.GetRequiredService<TInterface>());
 }
 
 try
@@ -28,15 +37,16 @@ try
     builder.Services.AddServerSideBlazor();
     builder.Services.AddMudServices();
 
-    builder.Services.AddSingleton<LogViewer>();
-    builder.Services.AddSingleton<HeaterDatabaseService>();
     builder.Services.AddOptions<HeaterStateMachineOptions>();
     builder.Services.AddHostedService<HeaterStateMachine>();
-    builder.Services.AddHostedService<HeaterControl>();
-    builder.Services.AddSingleton<IHeaterControl>(p => p.GetRequiredService<HeaterControl>());
+    AddHostedApiService<IHeaterControl, HeaterControl>(builder.Services);
+    AddHostedApiService<ISerialPort, EmulatedHeaterControlGateway>(builder.Services);
+
+    builder.Services.AddSingleton<LogViewer>();
+    builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(AppDir, "domo.db")));
+    builder.Services.AddSingleton<HeaterDatabaseService>();
     builder.Services.AddSingleton<HeaterFactory>();
     builder.Services.AddSingleton<Heater>(p => p.GetRequiredService<HeaterDatabaseService>().Heater);
-    builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(AppDir, "domo.db")));
 
     builder.Services.AddSingleton<Serilog.ILogger>(p =>
         CreateDefaultLoggerConfiguration()

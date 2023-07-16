@@ -25,6 +25,7 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
         _serialPort = serialPort;
         _heater = heater;
         _timer = new System.Timers.Timer();
+        _timer.Elapsed += ControlLoop;
     }
 
     public enum Request : byte { Status, Toggle }
@@ -35,34 +36,6 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
     {
         _serialPort.Open("COM5", 115200);
         _timer.Interval = QueryInterval.TotalMilliseconds;
-        _timer.Elapsed += (_, _) =>
-        {
-            lock (_timer)
-            {
-                _serialPort.Write((byte)Request.Status);
-
-                if (_serialPort.Read() == (byte)Response.ToggleConfirm)
-                {
-                    _actualState = _pendingState;
-                    _heater.Activated = _actualState switch
-                    {
-                        State.On => true,
-                        State.Off => false
-                    };
-                }
-
-                if (_targetState != _pendingState && DateTime.Now > _lastCommandTime + SettleDuration)
-                {
-                    _serialPort.Write((byte)Request.Toggle);
-                    _pendingState = _targetState;
-                    if (_serialPort.Read() != (byte)Response.NoChange)
-                    {
-                        throw new InvalidOperationException(
-                            "Unxpected response immediately after toggle request");
-                    }
-                }
-            }
-        };
         _timer.Start();
         return Task.CompletedTask;
     }
@@ -101,6 +74,36 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
             _logger.LogDebug($"{nameof(TurnOff)}");
             _targetState = State.Off;
             _lastCommandTime = DateTime.Now;
+        }
+    }
+
+    private void ControlLoop(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        lock (_timer)
+        {
+            _serialPort.Write((byte)Request.Status);
+            ReadAndProcessResponse();
+
+            if (_targetState != _pendingState && DateTime.Now > _lastCommandTime + SettleDuration)
+            {
+                _serialPort.Write((byte)Request.Toggle);
+                ReadAndProcessResponse();
+                _pendingState = _targetState;
+            }
+        }
+    }
+
+    private void ReadAndProcessResponse()
+    {
+        if (_serialPort.Read() == (byte)Response.ToggleConfirm)
+        {
+            _actualState = _pendingState;
+            _logger.LogInformation($"Heater activation: {_heater.Activated} -> {_actualState}");
+            _heater.Activated = _actualState switch
+            {
+                State.On => true,
+                State.Off => false
+            };
         }
     }
 }
