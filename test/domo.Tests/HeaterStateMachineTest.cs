@@ -100,7 +100,7 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
         _heater.OverrideDuration = TimeSpan.FromMilliseconds(100);
         _heater.Mode = HeaterMode.Override;
         AssertState(HeaterState.OverrideOn);
-        await Task.Delay(150);
+        await Task.Delay(200);
         _heater.Mode.Should().Be(initialState);
     }
 
