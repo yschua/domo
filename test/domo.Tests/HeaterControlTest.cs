@@ -2,6 +2,7 @@
 using domo.Data;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +22,8 @@ public class HeaterControlTest : LoggingTestsBase<HeaterControl>, IAsyncLifetime
         { 
             ConfirmInterval = TimeSpan.Zero
         };
-        _heaterControl = new(Logger, _gateway, _heater)
+        var options = Options.Create(new HeaterControlOptions());
+        _heaterControl = new(options, Logger, _gateway, _heater)
         {
             QueryInterval = TimeSpan.FromMilliseconds(40),
             SettleDuration = TimeSpan.FromMilliseconds(200),
