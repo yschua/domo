@@ -113,7 +113,7 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
         if (_serialPort.Read() == (byte)Response.ToggleConfirm)
         {
             _actualState = _pendingState;
-            _logger.LogInformation($"Heater activation: {_heater.Activated} -> {_actualState}");
+            _logger.LogInformation($"Heater activation: {_heater.Activated} -> {_actualState == State.On}");
             _heater.Activated = _actualState switch
             {
                 State.On => true,

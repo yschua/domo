@@ -221,10 +221,12 @@ public class HeaterStateMachine : IDisposable, IHostedService
             if (isOnCycle)
             {
                 _onDuration = _heater.CurrentSetting.OnCycleDurations.InitialDuration;
+                _logger.LogInformation($"OnDuration * -> {_onDuration}");
             }
             else
             {
                 _haltDuration = _heater.CurrentSetting.HaltCycleDurations.InitialDuration;
+                _logger.LogInformation($"HaltDuration * -> {_haltDuration}");
             }
         }
         else
@@ -245,14 +247,14 @@ public class HeaterStateMachine : IDisposable, IHostedService
             {
                 var duration = _onDuration;
                 UpdateDuration(ref duration, _heater.CurrentSetting.OnCycleDurations);
-                System.Diagnostics.Debug.WriteLine($"OnDuration {_onDuration} -> {duration}");
+                _logger.LogInformation($"OnDuration {_onDuration} -> {duration}");
                 _onDuration = duration;
             }
             else
             {
                 var duration = _haltDuration;
                 UpdateDuration(ref duration, _heater.CurrentSetting.HaltCycleDurations);
-                System.Diagnostics.Debug.WriteLine($"HaltDuration {_haltDuration} -> {duration}");
+                _logger.LogInformation($"HaltDuration {_haltDuration} -> {duration}");
                 _haltDuration = duration;
             }
         }
