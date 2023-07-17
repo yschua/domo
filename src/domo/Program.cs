@@ -39,8 +39,18 @@ try
 
     builder.Services.AddOptions<HeaterStateMachineOptions>();
     builder.Services.AddHostedService<HeaterStateMachine>();
+    var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+    var heaterControlOptions = configuration.GetSection(nameof(HeaterControlOptions));
+    builder.Services.Configure<HeaterControlOptions>(heaterControlOptions);
+    if (heaterControlOptions.GetValue<bool>(nameof(HeaterControlOptions.EmulatedGateway)))
+    {
+        AddHostedApiService<ISerialPort, EmulatedHeaterControlGateway>(builder.Services);
+    }
+    else
+    {
+        builder.Services.AddSingleton<ISerialPort, SerialPort>();
+    }
     AddHostedApiService<IHeaterControl, HeaterControl>(builder.Services);
-    AddHostedApiService<ISerialPort, EmulatedHeaterControlGateway>(builder.Services);
 
     builder.Services.AddSingleton<LogViewer>();
     builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(AppDir, "domo.db")));

@@ -1,4 +1,7 @@
-﻿namespace domo.Data;
+﻿using Microsoft.Extensions.Options;
+using System.Runtime.InteropServices;
+
+namespace domo.Data;
 
 public interface IHeaterControl
 {
@@ -6,8 +9,16 @@ public interface IHeaterControl
     void TurnOff();
 }
 
+public class HeaterControlOptions
+{
+    public string PortNameWindows { get; init; }
+    public string PortNameLinux { get; init; }
+    public bool EmulatedGateway { get; init; }
+}
+
 public class HeaterControl : IHeaterControl, IDisposable, IHostedService
 {
+    private readonly IOptions<HeaterControlOptions> _options;
     private ILogger<HeaterControl> _logger;
     private readonly ISerialPort _serialPort;
     private readonly Heater _heater;
@@ -18,9 +29,10 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
     private State _pendingState = State.Off;
     private DateTime _lastCommandTime;
 
-    public HeaterControl(ILogger<HeaterControl> logger,
+    public HeaterControl(IOptions<HeaterControlOptions> options, ILogger<HeaterControl> logger,
         ISerialPort serialPort, Heater heater)
     {
+        _options = options;
         _logger = logger;
         _serialPort = serialPort;
         _heater = heater;
@@ -34,7 +46,10 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _serialPort.Open("COM5", 115200);
+        var portName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? _options.Value.PortNameWindows
+            : _options.Value.PortNameLinux;
+        _serialPort.Open(portName, 115200);
         _timer.Interval = QueryInterval.TotalMilliseconds;
         _timer.Start();
         return Task.CompletedTask;
