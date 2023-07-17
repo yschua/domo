@@ -24,14 +24,21 @@
   RFM69 radio;
 #endif
 
-// Message control
-const char SUCCESS = 0x0;
-const char FAILED = 0x1;
+const char REQ_STATUS = 0;
+const char REQ_TOGGLE = 1;
+
+const char RESP_NO_CHANGE = 0;
+const char RESP_TOGGLE_CONFIRM = 1;
+
+const char RADIO_NOP = 0;
+const char RADIO_TOGGLE = 1;
 
 void setup()
 {
   Serial.begin(SERIAL_BAUD);
-  delay(10); // need?
+  while (!Serial)
+  {
+  }
   radio.initialize(FREQUENCY, NODE_ID, NETWORK_ID);
 
 #ifdef IS_RFM69HW
@@ -39,21 +46,45 @@ void setup()
 #endif
 
   radio.encrypt(ENCRYPT_KEY);
-
   blink(LED, 3);
 }
 
 void loop()
 {
-  if (Serial.available() > 0) {
-    char msg[1] = {Serial.read()};
-    bool ack = radio.sendWithRetry(HEATER_ID, msg, 1);
-    Serial.write(ack ? SUCCESS : FAILED);
+  static bool toggleRequested = false;
+  static bool toggleConfirmed = false;
+
+  if (Serial.available() > 0)
+  {
+    if (Serial.read() == REQ_TOGGLE)
+    {
+      toggleRequested = !toggleRequested;
+    }
+
+    if (toggleConfirmed)
+    {
+      toggleConfirmed = false;
+      Serial.write(RESP_TOGGLE_CONFIRM);
+    }
+    else
+    {
+      Serial.write(RESP_NO_CHANGE);
+    }
   }
 
-  if (radio.receiveDone()) {
+  if (radio.receiveDone())
+  {
     radio.sendACK();
-    Serial.write(radio.DATA[0]);
+
+    char response[1];
+    response[0] = toggleRequested ? RADIO_TOGGLE : RADIO_NOP;
+    bool ack = radio.sendWithRetry(HEATER_ID, response, 1);
+
+    if (toggleRequested && ack)
+    {
+      toggleConfirmed = true;
+      toggleRequested = false;
+    }
   }
 }
 

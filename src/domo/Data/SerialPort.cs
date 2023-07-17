@@ -10,28 +10,43 @@ public interface ISerialPort : IDisposable
 
 public class SerialPort : ISerialPort
 {
+    private readonly System.IO.Ports.SerialPort _port = new();
+    private readonly ILogger<SerialPort> _logger;
+
+    public SerialPort(ILogger<SerialPort> logger)
+    {
+        _logger = logger;
+    }
+
     public void Open(string portName, int baudRate)
     {
-        throw new NotImplementedException();
+        _port.PortName = portName;
+        _port.BaudRate = baudRate;
+        _port.ReadTimeout = 1000;
+        _port.WriteTimeout = 1000;
+        _port.Open();
     }
 
     public void Close()
     {
-        throw new NotImplementedException();
+        _port.Close();
     }
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+        _port.Dispose();
     }
 
     public byte Read()
     {
-        throw new NotImplementedException();
+        var data = (byte)_port.ReadByte();
+        _logger.LogDebug($"Read: {data}");
+        return data;
     }
 
     public void Write(byte data)
     {
-        throw new NotImplementedException();
+        _logger.LogDebug($"Write: {data}");
+        _port.Write(new[] { data }, 0, 1);
     }
 }
