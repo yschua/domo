@@ -96,14 +96,21 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
     {
         lock (_timer)
         {
-            _serialPort.Write((byte)Request.Status);
-            ReadAndProcessResponse();
-
-            if (_targetState != _pendingState && DateTime.Now > _lastCommandTime + SettleDuration)
+            try
             {
-                _serialPort.Write((byte)Request.Toggle);
+                _serialPort.Write((byte)Request.Status);
                 ReadAndProcessResponse();
-                _pendingState = _targetState;
+
+                if (_targetState != _pendingState && DateTime.Now > _lastCommandTime + SettleDuration)
+                {
+                    _serialPort.Write((byte)Request.Toggle);
+                    ReadAndProcessResponse();
+                    _pendingState = _targetState;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
             }
         }
     }
