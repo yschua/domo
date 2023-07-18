@@ -19,6 +19,12 @@ public class LogViewerSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
+        var sourceContext = logEvent.Properties.First(x => x.Key == "SourceContext").Value.ToString();
+        if (sourceContext.StartsWith("\"Microsoft.AspNetCore."))
+        {
+            return;
+        }
+
         using var writer = new StringWriter();
         _formatter.Format(logEvent, writer);
         _logViewer.Publish(writer.ToString());
