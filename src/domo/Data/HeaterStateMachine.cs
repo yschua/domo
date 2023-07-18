@@ -25,31 +25,23 @@ public enum HeaterTrigger
     Halt,
 }
 
-public class HeaterStateMachineOptions
-{
-    public TimeSpan TickInterval { get; init; } = TimeSpan.FromSeconds(1);
-}
-
 public class HeaterStateMachine : IDisposable, IHostedService
 {
     private readonly StateMachine<HeaterState, HeaterTrigger> _machine;
     private readonly Heater _heater;
-    private readonly HeaterStateMachineOptions _options;
     private readonly ILogger _logger;
     private readonly IHeaterControl _heaterControl;
-    private readonly System.Timers.Timer _timer;
+    private readonly System.Timers.Timer _timer = new();
     private readonly object _lock = new();
     private DateTime _cycleStart;
     private int _cycleNumber;
     private TimeSpan _onDuration;
     private TimeSpan _haltDuration;
 
-    public HeaterStateMachine(IOptions<HeaterStateMachineOptions> options,
-        ILogger<HeaterStateMachine> logger, Heater heater, IHeaterControl heaterControl)
+    public HeaterStateMachine(ILogger<HeaterStateMachine> logger, Heater heater, IHeaterControl heaterControl)
     {
         _machine = new(HeaterState.Off);
         _heater = heater;
-        _options = options.Value;
         _logger = logger;
         _heaterControl = heaterControl;
 
@@ -102,12 +94,12 @@ public class HeaterStateMachine : IDisposable, IHostedService
             ;
 
         _heater.HeaterModeChanged += (_, mode) => ChangeHeaterMode(mode);
-
-        _timer = new System.Timers.Timer(_options.TickInterval);
         _timer.Elapsed += TimerTick;
     }
 
     public event EventHandler<HeaterState>? StateChanged;
+
+    public TimeSpan TickInterval { get; init; } = TimeSpan.FromSeconds(1);
 
     public void Dispose()
     {
@@ -116,6 +108,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        _timer.Interval = TickInterval.TotalMilliseconds;
         _timer.Start();
         return Task.CompletedTask;
     }
@@ -172,7 +165,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
                 var now = TimeOnly.FromDateTime(DateTime.Now);
                 var events = _heater.Schedule.Events;
 
-                bool InRange(TimeOnly time) => now >= time && now <= time.Add(_options.TickInterval * 2);
+                bool InRange(TimeOnly time) => now >= time && now <= time.Add(TickInterval * 2);
                 var startEvents = events.Where(e => InRange(e.StartTime));
 
                 if (startEvents.Count() > 0)

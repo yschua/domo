@@ -37,8 +37,6 @@ try
     builder.Services.AddServerSideBlazor();
     builder.Services.AddMudServices();
 
-    builder.Services.AddOptions<HeaterStateMachineOptions>();
-    builder.Services.AddHostedService<HeaterStateMachine>();
     var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
     var heaterControlOptions = configuration.GetSection(nameof(HeaterControlOptions));
     builder.Services.Configure<HeaterControlOptions>(heaterControlOptions);
@@ -51,6 +49,7 @@ try
         builder.Services.AddSingleton<ISerialPort, SerialPort>();
     }
     AddHostedApiService<IHeaterControl, HeaterControl>(builder.Services);
+    builder.Services.AddHostedService<HeaterStateMachine>();
 
     builder.Services.AddSingleton<LogViewer>();
     builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(Path.Combine(AppDir, "domo.db")));

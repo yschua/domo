@@ -18,12 +18,11 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
     {
         _heater = new HeaterFactory().Create(TimeSpan.FromMilliseconds(200));
         _heater.OverrideDuration = TimeSpan.FromMilliseconds(5000);
-        var options = Options.Create(new HeaterStateMachineOptions
+        var heaterControlMock = new Mock<IHeaterControl>();
+        _machine = new HeaterStateMachine(Logger, _heater, heaterControlMock.Object)
         {
             TickInterval = TimeSpan.FromMilliseconds(10)
-        });
-        var heaterControlMock = new Mock<IHeaterControl>();
-        _machine = new HeaterStateMachine(options, Logger, _heater, heaterControlMock.Object);
+        };
     }
 
     public async Task InitializeAsync()
