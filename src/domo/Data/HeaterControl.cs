@@ -104,6 +104,7 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
                 if (_targetState != _pendingState && DateTime.Now > _lastCommandTime + SettleDuration)
                 {
                     _serialPort.Write((byte)Request.Toggle);
+                    _logger.LogInformation("Toggle requested");
                     ReadAndProcessResponse();
                     _pendingState = _targetState;
                 }

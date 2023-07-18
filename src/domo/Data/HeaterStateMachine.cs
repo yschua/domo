@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Stateless;
+﻿using Stateless;
 using System.Data;
 using System.Timers;
 
@@ -157,6 +156,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
                 if (DateTime.Now > (_heater.OverrideStart + _heater.OverrideDuration))
                 {
                     _heater.Mode = _heater.PreviousMode;
+                    _logger.LogInformation("Override ended");
                 }
             }
             
@@ -214,12 +214,12 @@ public class HeaterStateMachine : IDisposable, IHostedService
             if (isOnCycle)
             {
                 _onDuration = _heater.CurrentSetting.OnCycleDurations.InitialDuration;
-                _logger.LogInformation($"OnDuration * -> {_onDuration}");
+                _logger.LogInformation($"OnDuration Begin -> {_onDuration}");
             }
             else
             {
                 _haltDuration = _heater.CurrentSetting.HaltCycleDurations.InitialDuration;
-                _logger.LogInformation($"HaltDuration * -> {_haltDuration}");
+                _logger.LogInformation($"HaltDuration Begin -> {_haltDuration}");
             }
         }
         else
