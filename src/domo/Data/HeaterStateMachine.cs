@@ -150,52 +150,59 @@ public class HeaterStateMachine : IDisposable, IHostedService
     {
         lock (_lock)
         {
-            if (_heater.Mode == HeaterMode.Override)
+            try
             {
-                // when override ends
-                if (DateTime.Now > (_heater.OverrideStart + _heater.OverrideDuration))
+                if (_heater.Mode == HeaterMode.Override)
                 {
-                    _heater.Mode = _heater.PreviousMode;
-                    _logger.LogInformation("Override ended");
+                    // when override ends
+                    if (DateTime.Now > (_heater.OverrideStart + _heater.OverrideDuration))
+                    {
+                        _heater.Mode = _heater.PreviousMode;
+                        _logger.LogInformation("Override ended");
+                    }
+                }
+
+                if (_heater.Mode == HeaterMode.Schedule)
+                {
+                    var now = TimeOnly.FromDateTime(DateTime.Now);
+                    var events = _heater.Schedule.Events;
+
+                    bool InRange(TimeOnly time) => now >= time && now <= time.Add(TickInterval * 2);
+                    var startEvents = events.Where(e => InRange(e.StartTime));
+
+                    if (startEvents.Count() > 0)
+                    {
+                        _heater.CurrentLevel = startEvents.First().Level;
+                        UpdateCycleDuration(resetCycle: true, isOnCycle: true);
+                        TimerHeaterOn();
+                    }
+
+                    if (events.All(e => now < e.StartTime || now > e.EndTime))
+                    {
+                        TimerHeaterIdle();
+                    }
+                }
+
+                if (CurrentState == HeaterState.OverrideHalt || CurrentState == HeaterState.ScheduleHalt)
+                {
+                    if (DateTime.Now > (_cycleStart + _haltDuration))
+                    {
+                        TimerHeaterOn();
+                        UpdateCycleDuration(resetCycle: false, isOnCycle: true);
+                    }
+                }
+                else if (CurrentState == HeaterState.OverrideOn || CurrentState == HeaterState.ScheduleOn)
+                {
+                    if (DateTime.Now > (_cycleStart + _onDuration))
+                    {
+                        TimerHeaterHalt();
+                        UpdateCycleDuration(resetCycle: false, isOnCycle: false);
+                    }
                 }
             }
-            
-            if (_heater.Mode == HeaterMode.Schedule)
+            catch (Exception ex)
             {
-                var now = TimeOnly.FromDateTime(DateTime.Now);
-                var events = _heater.Schedule.Events;
-
-                bool InRange(TimeOnly time) => now >= time && now <= time.Add(TickInterval * 2);
-                var startEvents = events.Where(e => InRange(e.StartTime));
-
-                if (startEvents.Count() > 0)
-                {
-                    _heater.CurrentLevel = startEvents.First().Level;
-                    UpdateCycleDuration(resetCycle: true, isOnCycle: true);
-                    TimerHeaterOn();
-                }
-
-                if (events.All(e => now < e.StartTime || now > e.EndTime))
-                {
-                    TimerHeaterIdle();
-                }
-            }
-
-            if (CurrentState == HeaterState.OverrideHalt || CurrentState == HeaterState.ScheduleHalt)
-            {
-                if (DateTime.Now > (_cycleStart + _haltDuration))
-                {
-                    TimerHeaterOn();
-                    UpdateCycleDuration(resetCycle: false, isOnCycle: true);
-                }
-            }
-            else if (CurrentState == HeaterState.OverrideOn || CurrentState == HeaterState.ScheduleOn)
-            {
-                if (DateTime.Now > (_cycleStart + _onDuration))
-                {
-                    TimerHeaterHalt();
-                    UpdateCycleDuration(resetCycle: false, isOnCycle: false);
-                }
+                _logger.LogError(ex.ToString());
             }
         }
     }

@@ -31,6 +31,13 @@ try
 {
     Log.Logger = CreateDefaultLoggerConfiguration().CreateLogger();
 
+    AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+    {
+        var ex = (Exception)e.ExceptionObject;
+        Log.Error(ex.ToString());
+        Log.Error($"Runtime terminating: {e.IsTerminating}");
+    };
+
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddRazorPages();
