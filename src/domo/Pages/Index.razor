@@ -30,7 +30,7 @@
         {
             if (value < 0 || value >= HeaterModes.Count)
             {
-                Logger.LogWarning($"{nameof(SelectedHeaterModeIndex)} out of range: {value}");
+                Logger.LogWarning($"{nameof(SelectedHeaterModeIndex)} out of range ignored: {value}");
             }
             else
             {
