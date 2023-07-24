@@ -2,8 +2,12 @@ using domo.Data;
 using LiteDB;
 using MudBlazor.Services;
 using Serilog;
+using System.Runtime.InteropServices;
 
-var AppDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "domo");
+var AppDataDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+        : "~/AppData";
+var AppDir = Path.Combine(AppDataDir, "domo");
 Directory.CreateDirectory(AppDir);
 
 const string LogOutputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
