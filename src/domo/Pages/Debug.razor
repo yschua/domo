@@ -1,6 +1,7 @@
 ﻿@page "/debug"
 @implements IDisposable
 @inject LogViewer LogViewer
+@inject IHeaterControl HeaterControl
 
 @code {
     protected override void OnInitialized()
@@ -35,5 +36,12 @@
                 </div>
             </MudCardContent>
         </MudCard>
+    </MudItem>
+
+    <MudItem xs="2">
+        <MudButton OnClick="@(_ => HeaterControl.ForceOn())">Force On</MudButton>
+    </MudItem>
+    <MudItem xs="2">
+        <MudButton OnClick="@(_ => HeaterControl.ForceOff())">Force Off</MudButton>
     </MudItem>
 </MudGrid>

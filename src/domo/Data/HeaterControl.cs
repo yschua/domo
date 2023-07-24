@@ -7,6 +7,8 @@ public interface IHeaterControl
 {
     void TurnOn();
     void TurnOff();
+    void ForceOn();
+    void ForceOff();
 }
 
 public class HeaterControlOptions
@@ -89,6 +91,28 @@ public class HeaterControl : IHeaterControl, IDisposable, IHostedService
             _logger.LogDebug($"{nameof(TurnOff)}");
             _targetState = State.Off;
             _lastCommandTime = DateTime.Now;
+        }
+    }
+
+    public void ForceOn()
+    {
+        lock (_timer)
+        {
+            _logger.LogDebug($"{nameof(ForceOff)}");
+            _lastCommandTime = DateTime.Now - SettleDuration;
+            _targetState = State.Off;
+            _pendingState = State.On;
+        }
+    }
+
+    public void ForceOff()
+    {
+        lock (_timer)
+        {
+            _logger.LogDebug($"{nameof(ForceOn)}");
+            _lastCommandTime = DateTime.Now - SettleDuration;
+            _targetState = State.On;
+            _pendingState = State.Off;
         }
     }
 
