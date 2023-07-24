@@ -167,19 +167,19 @@ public class HeaterStateMachine : IDisposable, IHostedService
                     var now = TimeOnly.FromDateTime(DateTime.Now);
                     var events = _heater.Schedule.Events;
 
-                    bool InRange(TimeOnly time) => now >= time && now <= time.Add(TickInterval * 2);
-                    var startEvents = events.Where(e => InRange(e.StartTime));
-
-                    if (startEvents.Count() > 0)
-                    {
-                        _heater.CurrentLevel = startEvents.First().Level;
-                        UpdateCycleDuration(resetCycle: true, isOnCycle: true);
-                        TimerHeaterOn();
-                    }
-
                     if (events.All(e => now < e.StartTime || now > e.EndTime))
                     {
                         TimerHeaterIdle();
+                    }
+                    else if (CurrentState == HeaterState.ScheduleIdle)
+                    {
+                        var nextEvents = events.Where(e => now >= e.StartTime || now < e.EndTime);
+                        if (nextEvents.Count() > 0)
+                        {
+                            _heater.CurrentLevel = nextEvents.First().Level;
+                            UpdateCycleDuration(resetCycle: true, isOnCycle: true);
+                            TimerHeaterOn();
+                        }
                     }
                 }
 

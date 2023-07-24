@@ -468,18 +468,43 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
     }
 
     [Fact]
-    public async Task ScheduleCycleOnlyStartsAtStartTime()
+    public async Task ScheduleCycleCanStartsMidway()
     {
+        _heater.LowLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromSeconds(1));
         _heater.Mode = HeaterMode.Schedule;
-        bool stateChanged = false;
-        _machine.StateChanged += (_, state) => stateChanged = true;
+        int stateChangedCount = 0;
+        _machine.StateChanged += (_, state) => stateChangedCount++;
         var now = DateTime.Now;
         _heater.Schedule.AddEvent(new(
             now - TimeSpan.FromMilliseconds(100),
-            now + TimeSpan.FromMilliseconds(200),
+            now + TimeSpan.FromMilliseconds(300),
+            HeaterLevel.Low));
+        await Task.Delay(100);
+        stateChangedCount.Should().Be(1);
+        AssertState(HeaterState.ScheduleOn);
+    }
+
+    [Fact]
+    public async Task ScheduleCycleStartsOnScheduleModeChange()
+    {
+        _heater.LowLevelSetting.OnCycleDurations.SetSingle(TimeSpan.FromSeconds(1));
+        _heater.Mode = HeaterMode.Off;
+        int stateChangedCount = 0;
+        _machine.StateChanged += (_, state) => stateChangedCount++;
+        var now = DateTime.Now;
+        _heater.Schedule.AddEvent(new(
+            now - TimeSpan.FromMilliseconds(100),
+            now + TimeSpan.FromMilliseconds(1000),
             HeaterLevel.Low));
         await Task.Delay(300);
-        stateChanged.Should().BeFalse();
+        stateChangedCount.Should().Be(0);
+        _heater.Mode = HeaterMode.Schedule;
+        await Task.Delay(300);
+        stateChangedCount.Should().Be(2);
+        AssertState(HeaterState.ScheduleOn);
+        await Task.Delay(1000);
+        stateChangedCount.Should().Be(3);
+        AssertState(HeaterState.ScheduleIdle);
     }
 
     [Fact]
