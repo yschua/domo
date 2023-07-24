@@ -60,7 +60,7 @@ public partial class Heater : ObservableObject
 
     public void Reset()
     {
-        Mode = HeaterMode.Off;
+        Mode = HeaterMode.Schedule;
         Activated = false;
     }
 
