@@ -1,0 +1,12 @@
+[Unit]
+After=network-online.target
+
+[Service]
+ExecStart=~/.dotnet/dotnet domo.dll --urls "http://*:5000"
+WorkingDirectory=~/domo
+Restart=always
+User=ys
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target

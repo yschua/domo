@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 var AppDataDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
         ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-        : "~/AppData";
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData");
 var AppDir = Path.Combine(AppDataDir, "domo");
 Directory.CreateDirectory(AppDir);
 
