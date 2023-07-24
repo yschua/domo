@@ -100,6 +100,8 @@ public class HeaterStateMachine : IDisposable, IHostedService
 
     public TimeSpan TickInterval { get; init; } = TimeSpan.FromSeconds(1);
 
+    public HeaterMode StartMode { get; init; } = HeaterMode.Schedule;
+
     public void Dispose()
     {
         _timer.Dispose();
@@ -109,6 +111,7 @@ public class HeaterStateMachine : IDisposable, IHostedService
     {
         _timer.Interval = TickInterval.TotalMilliseconds;
         _timer.Start();
+        _heater.Mode = StartMode;
         return Task.CompletedTask;
     }
 

@@ -20,7 +20,8 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
         var heaterControlMock = new Mock<IHeaterControl>();
         _machine = new HeaterStateMachine(Logger, _heater, heaterControlMock.Object)
         {
-            TickInterval = TimeSpan.FromMilliseconds(10)
+            TickInterval = TimeSpan.FromMilliseconds(10),
+            StartMode = HeaterMode.Off,
         };
     }
 
