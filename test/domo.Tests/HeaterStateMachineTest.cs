@@ -13,6 +13,8 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
     private readonly Heater _heater;
     private readonly HeaterStateMachine _machine;
 
+    // TODO use fake timer for testing
+
     public HeaterStateMachineTest(ITestOutputHelper output) : base(output, TestLoggingConfig.Current)
     {
         _heater = new HeaterFactory().Create(TimeSpan.FromMilliseconds(200));
@@ -454,6 +456,11 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
          * Idle     -       1800ms
          */
 
+        var task = Task.WhenAll(
+            Task.Delay(300).ContinueWith(_ => _heater.CurrentLevel.Should().Be(HeaterLevel.Low)),
+            Task.Delay(1400).ContinueWith(_ => _heater.CurrentLevel.Should().Be(HeaterLevel.High))
+        );
+
         await AssertStateTimings(new[]
         {
             (0, HeaterState.ScheduleIdle),
@@ -465,6 +472,8 @@ public class HeaterStateMachineTest : LoggingTestsBase<HeaterStateMachine>, IAsy
             (1600, HeaterState.ScheduleHalt),
             (1800, HeaterState.ScheduleIdle),
         });
+
+        await task;
     }
 
     [Fact]

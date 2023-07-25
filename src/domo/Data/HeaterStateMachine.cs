@@ -176,10 +176,19 @@ public class HeaterStateMachine : IDisposable, IHostedService
                     }
                     else if (CurrentState == HeaterState.ScheduleIdle)
                     {
-                        var nextEvents = events.Where(e => now >= e.StartTime || now < e.EndTime);
-                        if (nextEvents.Count() > 0)
+                        var nextEvents = events.Where(e => now >= e.StartTime && now < e.EndTime);
+                        var numEvents = nextEvents.Count();
+                        if (numEvents > 0)
                         {
-                            _heater.CurrentLevel = nextEvents.First().Level;
+                            if (numEvents > 1)
+                            {
+                                _logger.LogWarning($"Found {numEvents} events to start, ignoring others");
+                            }
+
+                            var nextEvent = nextEvents.First();
+                            _logger.LogInformation($"Start scheduled: {nextEvent.Level}, " +
+                                $"{nextEvent.StartTime} to {nextEvent.EndTime}");
+                            _heater.CurrentLevel = nextEvent.Level;
                             UpdateCycleDuration(resetCycle: true, isOnCycle: true);
                             TimerHeaterOn();
                         }
