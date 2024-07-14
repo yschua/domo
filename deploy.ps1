@@ -1,1 +1,1 @@
-scp -r src\domo\bin\Release\net7.0\publish\* ys@kalay:/home/ys/domo
+scp -r src\domo\bin\Release\net8.0\publish\* ys@kalay:/home/ys/domo
