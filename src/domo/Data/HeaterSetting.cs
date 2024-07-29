@@ -5,10 +5,10 @@ namespace domo.Data;
 public partial class HeaterSetting : ObservableObject
 {
     [ObservableProperty]
-    private HeaterDurations _onCycleDurations;
+    private HeaterDurations _onCycleDurations = new();
 
     [ObservableProperty]
-    private HeaterDurations _haltCycleDurations;
+    private HeaterDurations _haltCycleDurations = new();
 
     public void SetUpPropertyChangedHandler()
     {

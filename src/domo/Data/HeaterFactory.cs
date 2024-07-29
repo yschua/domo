@@ -2,45 +2,37 @@
 
 public class HeaterFactory
 {
-    public Heater Create(TimeSpan? defaultDurationParam = null)
+    public Heater Create(TimeSpan? duration = null)
     {
-        var defaultDuration = defaultDurationParam ?? TimeSpan.FromMinutes(10);
+        duration ??= TimeSpan.FromMinutes(10);
         return new Heater
         {
             Mode = HeaterMode.Off,
             Level = HeaterLevel.Low,
-            LowLevelSetting = new HeaterSetting
-            {
-                OnCycleDurations = new HeaterDurations
-                {
-                    InitialDuration = defaultDuration,
-                    FinalDuration = defaultDuration,
-                    DurationChange = TimeSpan.Zero
-                },
-                HaltCycleDurations = new HeaterDurations
-                {
-                    InitialDuration = defaultDuration,
-                    FinalDuration = defaultDuration,
-                    DurationChange = TimeSpan.Zero
-                }
-            },
-            HighLevelSetting = new HeaterSetting
-            {
-                OnCycleDurations = new HeaterDurations
-                {
-                    InitialDuration = defaultDuration,
-                    FinalDuration = defaultDuration,
-                    DurationChange = TimeSpan.Zero
-                },
-                HaltCycleDurations = new HeaterDurations
-                {
-                    InitialDuration = defaultDuration,
-                    FinalDuration = defaultDuration,
-                    DurationChange = TimeSpan.Zero
-                }
-            },
-            OverrideDuration = defaultDuration,
+            VeryLowLevelSetting = CreateHeaterSetting(duration.Value),
+            LowLevelSetting = CreateHeaterSetting(duration.Value),
+            HighLevelSetting = CreateHeaterSetting(duration.Value),
+            OverrideDuration = duration,
             OverrideLevel = HeaterLevel.Low
+        };
+    }
+
+    private static HeaterDurations CreateHeaterDurations(TimeSpan duration)
+    {
+        return new HeaterDurations
+        {
+            InitialDuration = duration,
+            FinalDuration = duration,
+            DurationChange = TimeSpan.Zero
+        };
+    }
+
+    private static HeaterSetting CreateHeaterSetting(TimeSpan duration)
+    {
+        return new HeaterSetting
+        {
+            OnCycleDurations = CreateHeaterDurations(duration),
+            HaltCycleDurations = CreateHeaterDurations(duration)
         };
     }
 }

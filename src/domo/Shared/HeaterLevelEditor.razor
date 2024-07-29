@@ -15,7 +15,8 @@
 
     void StateChangedHandler(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Heater.LowLevelSetting) || 
+        if (e.PropertyName == nameof(Heater.VeryLowLevelSetting) || 
+            e.PropertyName == nameof(Heater.LowLevelSetting) ||
             e.PropertyName == nameof(Heater.HighLevelSetting))
         {
             InvokeAsync(StateHasChanged);
@@ -26,6 +27,7 @@
 
     HeaterSetting SelectedHeaterLevelSetting => SelectedLevel switch
     {
+        HeaterLevel.VeryLow => Heater.VeryLowLevelSetting,
         HeaterLevel.Low => Heater.LowLevelSetting,
         HeaterLevel.High => Heater.HighLevelSetting
     };
@@ -40,6 +42,7 @@
 
             <MudItem xs="12">
                 <MudSelect T="HeaterLevel" Variant="Variant.Outlined" Label="Level" @bind-Value="SelectedLevel">
+                    <MudSelectItem Value="HeaterLevel.VeryLow" />
                     <MudSelectItem Value="HeaterLevel.Low" />
                     <MudSelectItem Value="HeaterLevel.High" />
                 </MudSelect>

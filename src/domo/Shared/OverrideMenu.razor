@@ -32,7 +32,7 @@
         <MudText Typo="Typo.caption">Level</MudText>
     </MudItem>
 
-    @foreach (var level in new[]{ HeaterLevel.Low, HeaterLevel.High })
+    @foreach (var level in new[]{ HeaterLevel.VeryLow, HeaterLevel.Low, HeaterLevel.High })
     {
         <MudItem xs="4">
             <MudButton Color="Color.Primary" FullWidth="true"
@@ -42,8 +42,4 @@
             </MudButton>
         </MudItem>
     }
-
-    <MudItem xs="4">
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Disabled="true">Auto</MudButton>
-    </MudItem>
 </MudGrid>

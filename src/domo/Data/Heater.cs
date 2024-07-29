@@ -14,6 +14,7 @@ public enum HeaterLevel
     Low,
     High,
     Auto,
+    VeryLow,
 }
 
 public partial class Heater : ObservableObject
@@ -30,6 +31,7 @@ public partial class Heater : ObservableObject
 
     public HeaterSetting CurrentSetting => CurrentLevel switch
     {
+        HeaterLevel.VeryLow => VeryLowLevelSetting,
         HeaterLevel.Low => LowLevelSetting,
         HeaterLevel.High => HighLevelSetting
     };
@@ -47,10 +49,13 @@ public partial class Heater : ObservableObject
     private HeaterLevel _level;
 
     [ObservableProperty]
-    private HeaterSetting _lowLevelSetting;
+    private HeaterSetting _veryLowLevelSetting = new();
 
     [ObservableProperty]
-    private HeaterSetting _highLevelSetting;
+    private HeaterSetting _lowLevelSetting = new();
+
+    [ObservableProperty]
+    private HeaterSetting _highLevelSetting = new();
 
     [ObservableProperty]
     private TimeSpan? _overrideDuration;
@@ -66,10 +71,12 @@ public partial class Heater : ObservableObject
 
     public void SetUpPropertyChangedHandler()
     {
+        VeryLowLevelSetting.SetUpPropertyChangedHandler();
         LowLevelSetting.SetUpPropertyChangedHandler();
         HighLevelSetting.SetUpPropertyChangedHandler();
         Schedule.SetUpPropertyChangedHandler();
 
+        VeryLowLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(VeryLowLevelSetting));
         LowLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(LowLevelSetting));
         HighLevelSetting.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HighLevelSetting));
         Schedule.PropertyChanged += (_, _) => OnPropertyChanged(nameof(Schedule));
