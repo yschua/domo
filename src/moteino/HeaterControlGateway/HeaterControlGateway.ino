@@ -46,7 +46,7 @@ void setup()
 #endif
 
   radio.encrypt(ENCRYPT_KEY);
-  blink(LED, 3);
+  blink(3);
 }
 
 void loop()
@@ -84,14 +84,28 @@ void loop()
     {
       toggleConfirmed = true;
       toggleRequested = false;
+      blink(2);
+    }
+    else
+    {
+      blink(1);
     }
   }
 }
 
-void blink(byte pin, int duration)
+void blink(int count)
 {
+  byte pin = LED;
+  int duration = 100;
   pinMode(pin, OUTPUT);
-  digitalWrite(pin, HIGH);
-  delay(duration);
-  digitalWrite(pin, LOW);
+  for (int i = 0; i < count; i++)
+  {
+    digitalWrite(pin, HIGH);
+    delay(duration);
+    digitalWrite(pin, LOW);
+    if (i != count - 1)
+    {
+      delay(duration);
+    }
+  }
 }
